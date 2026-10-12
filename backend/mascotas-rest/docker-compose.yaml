@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Instancia 1
+  app-dev:
+    build: .
+    image: mascotas-rest:latest
+    container_name: mascotas-rest-dev
+    ports:
+      - "8085:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=mascotas_cba
+      - DB_USER=sa
+      - DB_PASSWORD=pyxis
+
+  # Instancia 2
+  app-test:
+    image: mascotas-rest:latest
+    container_name: mascotas-rest-test
+    ports:
+      - "8086:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=mascotas_cba_test
+      - DB_USER=sa
+      - DB_PASSWORD=pyxis
