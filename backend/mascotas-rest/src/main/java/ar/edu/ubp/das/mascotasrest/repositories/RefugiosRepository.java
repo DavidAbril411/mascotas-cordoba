@@ -18,7 +18,7 @@ public class RefugiosRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public int insertarRefugio(RefugioDataBE refugio, int idResponsable) {
+    public int insertarRefugio(RefugioDataBE refugio) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
             .withProcedureName("ins_refugio")
             .declareParameters(
@@ -27,7 +27,13 @@ public class RefugiosRepository {
                 new SqlParameter("telefono", Types.VARCHAR),
                 new SqlParameter("domicilio", Types.VARCHAR),
                 new SqlParameter("habilitacion_municipal", Types.VARCHAR),
-                new SqlParameter("id_responsable", Types.INTEGER),
+                new SqlParameter("apellido", Types.VARCHAR),
+                new SqlParameter("nombre", Types.VARCHAR),
+                new SqlParameter("cuil", Types.VARCHAR),
+                new SqlParameter("clave", Types.VARCHAR),
+                new SqlParameter("correo_responsable", Types.VARCHAR),
+                new SqlParameter("telefono_responsable", Types.VARCHAR),
+                new SqlParameter("domicilio_responsable", Types.VARCHAR),
                 new SqlOutParameter("id_refugio", Types.INTEGER)
             );
 
@@ -38,7 +44,13 @@ public class RefugiosRepository {
         params.put("telefono", refugio.getTelefono());
         params.put("domicilio", refugio.getDomicilio());
         params.put("habilitacion_municipal", refugio.getHabilitacionMunicipal());
-        params.put("id_responsable", idResponsable);
+        params.put("apellido", refugio.getResponsable().getApellido());
+        params.put("nombre", refugio.getResponsable().getNombre());
+        params.put("cuil", refugio.getResponsable().getCuil());
+        params.put("clave", refugio.getResponsable().getClave());
+        params.put("correo_responsable", refugio.getResponsable().getCorreo());
+        params.put("telefono_responsable", refugio.getResponsable().getTelefono());
+        params.put("domicilio_responsable", refugio.getResponsable().getDomicilio());
 
         Map<String, Object> result = jdbcCall.execute(params);
 
