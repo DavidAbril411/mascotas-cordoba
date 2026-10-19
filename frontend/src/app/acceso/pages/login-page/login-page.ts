@@ -1,6 +1,6 @@
 import { Component, inject, Injector, OnInit, signal, WritableSignal } from '@angular/core';
 import { FieldTree, form, FormField, FormRoot, required } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SesionesResource } from '../../api/resources/sesiones-resource';
 import { ILoginData } from '../../api/models/i-login-data';
 import { IUsuario, SesionService } from '../../../core/services/sesion-service';
@@ -10,6 +10,7 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus';
   imports: [
     FormField,
     FormRoot,
+    RouterLink,
     AutofocusDirective
   ],
   providers: [
