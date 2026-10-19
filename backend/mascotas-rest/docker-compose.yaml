@@ -13,7 +13,7 @@ services:
       - DB_PORT=1433
       - DB_NAME=mascotas_cba
       - DB_USER=sa
-      - DB_PASSWORD=pyxis
+      - DB_PASSWORD=Pyxis.2026
 
   # Instancia 2
   app-test:
@@ -26,4 +26,4 @@ services:
       - DB_PORT=1433
       - DB_NAME=mascotas_cba_test
       - DB_USER=sa
-      - DB_PASSWORD=pyxis
+      - DB_PASSWORD=Pyxis.2026
