@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 
 export interface IUsuario {
   idSesion: string;
@@ -18,7 +18,9 @@ export class SesionService {
 
   private _usuario = signal<IUsuario | null>(null);
 
-  readonly usuario = this._usuario.asReadonly();
+  readonly usuario = computed(() =>
+    this._usuario()
+  );
 
   iniciar(usuario: IUsuario): void {
     this._usuario.set(usuario);

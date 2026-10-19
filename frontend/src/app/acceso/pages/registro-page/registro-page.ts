@@ -1,6 +1,6 @@
 import { Component, inject, Injector, OnInit, signal, WritableSignal } from '@angular/core';
 import { email, FieldTree, form, FormField, FormRoot, maxLength, minLength, required, validate } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { RefugiosResource } from '../../api/resources/refugios-resource';
 import { IRefugioData } from '../../api/models/i-refugio-data';
 import { AppMessageService } from '../../../core/services/app-message-service';
@@ -10,7 +10,6 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus';
   imports: [
     FormField,
     FormRoot,
-    RouterLink,
     AutofocusDirective
   ],
   providers: [
@@ -46,6 +45,10 @@ export class RegistroPage implements OnInit {
         this._router.navigate(['/acceso']);
       });
     }
+  }
+
+  back(): void {
+    this._router.navigate(['/acceso']);
   }
 
   private initForm(): void {
