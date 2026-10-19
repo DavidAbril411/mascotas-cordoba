@@ -1,6 +1,7 @@
 use mascotas_cba
 go
 
+drop table if exists dbo.sesiones
 drop table if exists dbo.publicaciones_adopcion
 drop table if exists dbo.caracteristicas_mascotas
 drop table if exists dbo.dominio_rasgos_mascotas
@@ -256,6 +257,21 @@ create table dbo.publicaciones_adopcion
 go
 
 /* ------------------------------------------
+   Tabla: sesiones (agregada, no está en el modelo lógico)
+   ------------------------------------------ */
+create table dbo.sesiones
+(
+ id_sesion				uniqueidentifier	not null
+						constraint PK__sesiones__END primary key,
+ id_ciudadano			integer			not null
+						constraint FK__sesiones__ciudadanos__END references dbo.ciudadanos,
+ id_refugio				integer			not null
+						constraint FK__sesiones__refugios__END references dbo.refugios,
+ fecha_inicio			datetime		not null
+)
+go
+
+/* ------------------------------------------
    Procedimiento: get_ciudadano
    ------------------------------------------ */
 create or alter procedure dbo.get_ciudadano
@@ -343,9 +359,9 @@ go
 -- declare @id integer execute dbo.ins_refugio @razon_social='REFUGIO PATITAS', @correo='patitas@refugio.org', @habilitacion_municipal='HM-0002', @apellido='GOMEZ', @nombre='ANA', @cuil='27234567894', @clave='clave123', @correo_responsable='ana@mail.com', @id_refugio=@id output select @id
 
 /* ------------------------------------------
-   Procedimiento: get_usuario_refugio
+   Procedimiento: ins_sesion
    ------------------------------------------ */
-create or alter procedure dbo.get_usuario_refugio
+create or alter procedure dbo.ins_sesion
 (
  @cuil			varchar(11),
  @clave			varchar(20)
@@ -353,13 +369,15 @@ create or alter procedure dbo.get_usuario_refugio
 as
 begin
 
-  select idCiudadano = c.id_ciudadano,
-         apellido    = c.apellido,
-         nombre      = c.nombre,
-         cuil        = c.cuil,
-         correo      = c.correo,
-         idRefugio   = r.id_refugio,
-         razonSocial = r.razon_social
+  set nocount on
+
+  declare @id_sesion		uniqueidentifier = newid(),
+          @id_ciudadano	integer,
+          @id_refugio		integer
+
+  select top 1
+         @id_ciudadano = c.id_ciudadano,
+         @id_refugio   = r.id_refugio
     from dbo.ciudadanos c (nolock)
          join dbo.refugios r (nolock)
            on c.id_ciudadano = r.id_responsable
@@ -368,10 +386,31 @@ begin
      and c.habilitado = 1
    order by r.id_refugio
 
+  if @id_ciudadano is not null
+     insert into dbo.sesiones(id_sesion, id_ciudadano, id_refugio, fecha_inicio)
+     values(@id_sesion, @id_ciudadano, @id_refugio, getdate())
+
+  set nocount off
+
+  select idSesion    = convert(varchar(36), s.id_sesion),
+         idCiudadano = c.id_ciudadano,
+         apellido    = c.apellido,
+         nombre      = c.nombre,
+         cuil        = c.cuil,
+         correo      = c.correo,
+         idRefugio   = r.id_refugio,
+         razonSocial = r.razon_social
+    from dbo.sesiones s (nolock)
+         join dbo.ciudadanos c (nolock)
+           on s.id_ciudadano = c.id_ciudadano
+         join dbo.refugios r (nolock)
+           on s.id_refugio = r.id_refugio
+   where s.id_sesion = @id_sesion
+
 end
 go
 
--- execute dbo.get_usuario_refugio @cuil='20123456789', @clave='123456'
+-- execute dbo.ins_sesion @cuil='20123456789', @clave='123456'
 
 /* ------------------------------------------
    Datos iniciales: usuario de refugio

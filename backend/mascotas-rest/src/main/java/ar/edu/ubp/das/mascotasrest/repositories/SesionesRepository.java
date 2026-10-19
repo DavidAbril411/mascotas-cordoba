@@ -9,14 +9,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class UsuariosRepository {
+public class SesionesRepository {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<UsuarioBE> getUsuarioRefugio(String cuil, String clave) {
+    public List<UsuarioBE> insertarSesion(String cuil, String clave) {
         return jdbcTemplate.query(
-            "exec dbo.get_usuario_refugio ?, ?",
+            "exec dbo.ins_sesion ?, ?",
             new BeanPropertyRowMapper<>(UsuarioBE.class),
             cuil,
             clave

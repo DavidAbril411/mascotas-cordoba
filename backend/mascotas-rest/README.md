@@ -28,8 +28,8 @@ Todas las llamadas llevan el header `X-API-Key` (valor en `security.api-key` de 
 
 | Método | URI | Body | Respuesta |
 |---|---|---|---|
-| POST | `/sesiones` | `{"cuil": "20123456789", "clave": "123456"}` | 200 con el usuario y su refugio · 401 si las credenciales no son válidas |
-| POST | `/refugios` | ver ejemplo | 200 con el `idRefugio` · 400 si faltan datos o el CUIL ya está registrado |
+| POST | `/sesiones` | `{"cuil": "20123456789", "clave": "123456"}` | 200 con el usuario, su refugio y el `idSesion` · 401 con el mensaje si las credenciales no son válidas |
+| POST | `/refugios` | ver ejemplo | 200 con el `idRefugio` · 400 con el mensaje si faltan datos o el CUIL ya está registrado |
 
 Ejemplo de registro:
 
@@ -56,6 +56,7 @@ Respuesta del login:
 
 ```json
 {
+  "idSesion": "5ACDE4CE-BE93-41D3-838B-344868473A51",
   "idCiudadano": 1,
   "apellido": "PEREZ",
   "nombre": "JUAN",
@@ -66,4 +67,8 @@ Respuesta del login:
 }
 ```
 
-El frontend Angular guarda este usuario para mantener el contexto de la sesión.
+Cada login exitoso graba una fila en la tabla `sesiones` (agregada al modelo lógico, no modifica las tablas de la profe) mediante `dbo.ins_sesion`. El frontend Angular guarda este usuario en `SesionService` para mantener el contexto de la sesión.
+
+## CORS
+
+`config/CorsConfig.java` es el de la profe (`personas-rest`), con `X-API-Key` agregado a los headers permitidos para que el portal Angular (puertos 4200 y 4201) pueda mandar la API Key.

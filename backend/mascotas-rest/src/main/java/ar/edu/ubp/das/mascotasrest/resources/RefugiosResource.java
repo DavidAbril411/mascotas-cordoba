@@ -20,7 +20,7 @@ public class RefugiosResource {
     private CiudadanosRepository ciudadanosRepository;
 
     @PostMapping
-    public ResponseEntity<Integer> registrarRefugio(@RequestBody RefugioDataBE refugio) {
+    public ResponseEntity registrarRefugio(@RequestBody RefugioDataBE refugio) {
         CiudadanoDataBE responsable = refugio.getResponsable();
 
         if (vacio(refugio.getRazonSocial()) ||
@@ -31,9 +31,12 @@ public class RefugiosResource {
             vacio(responsable.getNombre()) ||
             vacio(responsable.getCuil()) ||
             vacio(responsable.getClave()) ||
-            vacio(responsable.getCorreo()) ||
-            !ciudadanosRepository.getCiudadano(responsable.getCuil()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            vacio(responsable.getCorreo())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Faltan datos obligatorios del refugio o del responsable.");
+        }
+
+        if (!ciudadanosRepository.getCiudadano(responsable.getCuil()).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El CUIL del responsable ya está registrado.");
         }
 
         return ResponseEntity.ok(repository.insertarRefugio(refugio));

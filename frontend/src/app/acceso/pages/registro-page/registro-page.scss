@@ -1,0 +1,17 @@
+.registro-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e9f7ef 0%, #f8f9fa 100%);
+}
+
+.registro-card {
+  max-width: 720px;
+  border-radius: 1.25rem;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.12);
+}
+
+.logo {
+  width: 75px;
+  height: 75px;
+  margin-bottom: 1.25rem;
+  font-size: 2rem;
+}
