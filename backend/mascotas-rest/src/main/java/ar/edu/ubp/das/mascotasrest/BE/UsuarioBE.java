@@ -2,6 +2,7 @@ package ar.edu.ubp.das.mascotasrest.BE;
 
 public class UsuarioBE {
 
+    private String idSesion;
     private int idCiudadano;
     private String apellido;
     private String nombre;
@@ -9,6 +10,14 @@ public class UsuarioBE {
     private String correo;
     private int idRefugio;
     private String razonSocial;
+
+    public String getIdSesion() {
+        return idSesion;
+    }
+
+    public void setIdSesion(String idSesion) {
+        this.idSesion = idSesion;
+    }
 
     public int getIdCiudadano() {
         return idCiudadano;
