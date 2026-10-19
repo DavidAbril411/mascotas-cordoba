@@ -279,49 +279,6 @@ go
 -- execute dbo.get_ciudadano @cuil='20123456789'
 
 /* ------------------------------------------
-   Procedimiento: ins_ciudadano
-   ------------------------------------------ */
-create or alter procedure dbo.ins_ciudadano
-(
- @apellido		varchar(40),
- @nombre		varchar(100),
- @cuil			varchar(11),
- @clave			varchar(20),
- @correo		varchar(255),
- @telefono		varchar(20)		= null,
- @domicilio		varchar(255)	= null,
- @id_ciudadano	integer			output
-)
-as
-begin
-
-  set nocount on
-
-  if trim(@telefono) = ''
-     set @telefono = null
-  if trim(@domicilio) = ''
-     set @domicilio = null
-
-  insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
-  values(upper(trim(@apellido)),
-         upper(trim(@nombre)),
-         trim(@cuil),
-         @clave,
-         trim(@correo),
-         trim(@telefono),
-         upper(trim(@domicilio)),
-         1)
-
-  set @id_ciudadano = @@identity
-
-  set nocount off
-
-end
-go
-
--- declare @id integer execute dbo.ins_ciudadano @apellido='PEREZ', @nombre='JUAN', @cuil='20123456789', @clave='123456', @correo='juan.perez@ubp.edu.ar', @id_ciudadano=@id output select @id
-
-/* ------------------------------------------
    Procedimiento: ins_refugio
    ------------------------------------------ */
 create or alter procedure dbo.ins_refugio
@@ -331,7 +288,13 @@ create or alter procedure dbo.ins_refugio
  @telefono					varchar(20)		= null,
  @domicilio					varchar(255)	= null,
  @habilitacion_municipal	varchar(20),
- @id_responsable			integer,
+ @apellido					varchar(40),
+ @nombre					varchar(100),
+ @cuil						varchar(11),
+ @clave						varchar(20),
+ @correo_responsable		varchar(255),
+ @telefono_responsable		varchar(20)		= null,
+ @domicilio_responsable		varchar(255)	= null,
  @id_refugio				integer			output
 )
 as
@@ -339,10 +302,28 @@ begin
 
   set nocount on
 
+  declare @id_responsable integer
+
   if trim(@telefono) = ''
      set @telefono = null
   if trim(@domicilio) = ''
      set @domicilio = null
+  if trim(@telefono_responsable) = ''
+     set @telefono_responsable = null
+  if trim(@domicilio_responsable) = ''
+     set @domicilio_responsable = null
+
+  insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
+  values(upper(trim(@apellido)),
+         upper(trim(@nombre)),
+         trim(@cuil),
+         @clave,
+         trim(@correo_responsable),
+         trim(@telefono_responsable),
+         upper(trim(@domicilio_responsable)),
+         1)
+
+  set @id_responsable = @@identity
 
   insert into dbo.refugios(razon_social, correo, telefono, domicilio, habilitacion_municipal, id_responsable)
   values(upper(trim(@razon_social)),
@@ -359,7 +340,7 @@ begin
 end
 go
 
--- declare @id integer execute dbo.ins_refugio @razon_social='REFUGIO HUELLITAS', @correo='huellitas@refugio.org', @habilitacion_municipal='HM-0001', @id_responsable=1, @id_refugio=@id output select @id
+-- declare @id integer execute dbo.ins_refugio @razon_social='REFUGIO PATITAS', @correo='patitas@refugio.org', @habilitacion_municipal='HM-0002', @apellido='GOMEZ', @nombre='ANA', @cuil='27234567894', @clave='clave123', @correo_responsable='ana@mail.com', @id_refugio=@id output select @id
 
 /* ------------------------------------------
    Procedimiento: get_usuario_refugio

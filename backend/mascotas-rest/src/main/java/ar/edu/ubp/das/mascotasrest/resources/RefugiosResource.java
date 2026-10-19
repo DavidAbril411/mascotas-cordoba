@@ -1,7 +1,9 @@
 package ar.edu.ubp.das.mascotasrest.resources;
 
+import ar.edu.ubp.das.mascotasrest.BE.CiudadanoDataBE;
 import ar.edu.ubp.das.mascotasrest.BE.RefugioDataBE;
-import ar.edu.ubp.das.mascotasrest.services.RefugiosService;
+import ar.edu.ubp.das.mascotasrest.repositories.CiudadanosRepository;
+import ar.edu.ubp.das.mascotasrest.repositories.RefugiosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,16 +14,33 @@ import org.springframework.web.bind.annotation.*;
 public class RefugiosResource {
 
     @Autowired
-    private RefugiosService service;
+    private RefugiosRepository repository;
+
+    @Autowired
+    private CiudadanosRepository ciudadanosRepository;
 
     @PostMapping
     public ResponseEntity<Integer> registrarRefugio(@RequestBody RefugioDataBE refugio) {
-        if (!service.datosCompletos(refugio) ||
-            service.existeCiudadano(refugio.getResponsable().getCuil())) {
+        CiudadanoDataBE responsable = refugio.getResponsable();
+
+        if (vacio(refugio.getRazonSocial()) ||
+            vacio(refugio.getCorreo()) ||
+            vacio(refugio.getHabilitacionMunicipal()) ||
+            responsable == null ||
+            vacio(responsable.getApellido()) ||
+            vacio(responsable.getNombre()) ||
+            vacio(responsable.getCuil()) ||
+            vacio(responsable.getClave()) ||
+            vacio(responsable.getCorreo()) ||
+            !ciudadanosRepository.getCiudadano(responsable.getCuil()).isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        return ResponseEntity.ok(service.registrarRefugio(refugio));
+        return ResponseEntity.ok(repository.insertarRefugio(refugio));
+    }
+
+    private boolean vacio(String valor) {
+        return valor == null || valor.isBlank();
     }
 
 }
