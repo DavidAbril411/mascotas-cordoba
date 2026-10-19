@@ -32,7 +32,7 @@ export class LoginPage implements OnInit {
   loginForm!: FieldTree<ILoginData>;
 
   ngOnInit(): void {
-    this.login = signal<ILoginData>({ cuil: '', clave: '' });
+    this.login = signal<ILoginData>(this.nuevoLogin());
     this.initForm();
   }
 
@@ -60,6 +60,13 @@ export class LoginPage implements OnInit {
         }
       }
     });
+  }
+
+  private nuevoLogin(): ILoginData {
+    return {
+      cuil: '',
+      clave: ''
+    }
   }
 
 }
