@@ -1,0 +1,159 @@
+<div class="registro-page d-flex align-items-center justify-content-center p-3">
+  <div class="card registro-card w-100 border-0">
+    <div class="card-body p-5">
+      <div class="text-center mb-4">
+        <div class="logo d-flex align-items-center justify-content-center mx-auto rounded-circle bg-success text-white">
+          <i class="bi bi-heart-fill"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Mascotas Córdoba</h2>
+        <p class="text-body-secondary mb-0">Registro de refugio</p>
+      </div>
+
+      <form [formRoot]="refForm" novalidate>
+        <h6 class="fw-bold mb-3"><i class="bi bi-house-heart me-2"></i>Datos del refugio</h6>
+        <div class="row">
+          <div class="col-12 mb-3">
+            <label for="irazon_social" class="form-label">Razón social <span class="text-danger">*</span></label>
+            <input appAutofocus type="text" id="irazon_social" [formField]="refForm.razonSocial" class="form-control"
+              placeholder="Ej: Refugio Patitas" />
+            @if (refForm.razonSocial().touched() && refForm.razonSocial().invalid()) {
+            <small class="text-danger">Debe informar la razón social.</small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="icorreo" class="form-label">Correo <span class="text-danger">*</span></label>
+            <input type="email" id="icorreo" [formField]="refForm.correo" class="form-control"
+              placeholder="Ej: contacto@refugio.org" />
+            @if (refForm.correo().touched() && refForm.correo().invalid()) {
+            <small class="text-danger">
+              @if (refForm.correo().errors()[0]?.kind === 'required') {
+              Debe informar el correo.
+              }
+              @else {
+              El correo es inválido.
+              }
+            </small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="ihabilitacion" class="form-label">Habilitación municipal <span class="text-danger">*</span></label>
+            <input type="text" id="ihabilitacion" [formField]="refForm.habilitacionMunicipal" class="form-control"
+              placeholder="Ej: HM-0002" />
+            @if (refForm.habilitacionMunicipal().touched() && refForm.habilitacionMunicipal().invalid()) {
+            <small class="text-danger">Debe informar la habilitación municipal.</small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="itelefono" class="form-label">Teléfono</label>
+            <input type="text" id="itelefono" [formField]="refForm.telefono" class="form-control"
+              placeholder="Ej: 3515550000" />
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="idomicilio" class="form-label">Domicilio</label>
+            <input type="text" id="idomicilio" [formField]="refForm.domicilio" class="form-control"
+              placeholder="Ej: Av. Colón 1234" />
+          </div>
+        </div>
+
+        <hr class="mt-2 mb-4" />
+
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-vcard me-2"></i>Datos del responsable</h6>
+        <div class="row">
+          <div class="col-12 col-md-6 mb-3">
+            <label for="iapellido" class="form-label">Apellido <span class="text-danger">*</span></label>
+            <input type="text" id="iapellido" [formField]="refForm.responsable.apellido" class="form-control"
+              placeholder="Ej: Gómez" />
+            @if (refForm.responsable.apellido().touched() && refForm.responsable.apellido().invalid()) {
+            <small class="text-danger">Debe informar el apellido.</small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="inombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+            <input type="text" id="inombre" [formField]="refForm.responsable.nombre" class="form-control"
+              placeholder="Ej: Ana" />
+            @if (refForm.responsable.nombre().touched() && refForm.responsable.nombre().invalid()) {
+            <small class="text-danger">Debe informar el nombre.</small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="icuil" class="form-label">CUIL <span class="text-danger">*</span></label>
+            <input type="text" id="icuil" [formField]="refForm.responsable.cuil" class="form-control"
+              placeholder="Ej: 27234567894" />
+            @if (refForm.responsable.cuil().touched() && refForm.responsable.cuil().invalid()) {
+            <small class="text-danger">
+              @if (refForm.responsable.cuil().errors()[0]?.kind === 'required') {
+              Debe informar el CUIL.
+              }
+              @else {
+              El CUIL debe tener 11 números, sin guiones.
+              }
+            </small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="icorreo_responsable" class="form-label">Correo <span class="text-danger">*</span></label>
+            <input type="email" id="icorreo_responsable" [formField]="refForm.responsable.correo" class="form-control"
+              placeholder="Ej: ana@mail.com" />
+            @if (refForm.responsable.correo().touched() && refForm.responsable.correo().invalid()) {
+            <small class="text-danger">
+              @if (refForm.responsable.correo().errors()[0]?.kind === 'required') {
+              Debe informar el correo.
+              }
+              @else {
+              El correo es inválido.
+              }
+            </small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="itelefono_responsable" class="form-label">Teléfono</label>
+            <input type="text" id="itelefono_responsable" [formField]="refForm.responsable.telefono" class="form-control"
+              placeholder="Ej: 3515551111" />
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="idomicilio_responsable" class="form-label">Domicilio</label>
+            <input type="text" id="idomicilio_responsable" [formField]="refForm.responsable.domicilio" class="form-control"
+              placeholder="Ej: Bv. San Juan 456" />
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="iclave" class="form-label">Contraseña <span class="text-danger">*</span></label>
+            <input type="password" id="iclave" [formField]="refForm.responsable.clave" class="form-control"
+              placeholder="Mínimo 6 caracteres" />
+            @if (refForm.responsable.clave().touched() && refForm.responsable.clave().invalid()) {
+            <small class="text-danger">
+              @if (refForm.responsable.clave().errors()[0]?.kind === 'required') {
+              Debe informar la contraseña.
+              }
+              @else {
+              La contraseña debe tener entre 6 y 20 caracteres.
+              }
+            </small>
+            }
+          </div>
+          <div class="col-12 col-md-6 mb-3">
+            <label for="iconfirmar_clave" class="form-label">Confirmar contraseña <span class="text-danger">*</span></label>
+            <input type="password" id="iconfirmar_clave" [formField]="refForm.responsable.confirmarClave" class="form-control"
+              placeholder="Repita la contraseña" />
+            @if (refForm.responsable.confirmarClave().touched() && refForm.responsable.confirmarClave().invalid()) {
+            <small class="text-danger">
+              @if (refForm.responsable.confirmarClave().errors()[0]?.kind === 'required') {
+              Debe confirmar la contraseña.
+              }
+              @else {
+              Las contraseñas no coinciden.
+              }
+            </small>
+            }
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-2">
+          <button type="button" class="btn btn-secondary" routerLink="/acceso">Cancelar</button>
+          <button type="submit" class="btn btn-success ms-2">
+            <i class="bi bi-check-lg me-2"></i> Registrar refugio
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

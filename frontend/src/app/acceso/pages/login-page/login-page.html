@@ -1,0 +1,47 @@
+<div class="login-page d-flex align-items-center justify-content-center p-3">
+  <div class="card login-card w-100 border-0">
+    <div class="card-body p-5">
+      <div class="text-center mb-4">
+        <div class="logo d-flex align-items-center justify-content-center mx-auto rounded-circle bg-success text-white">
+          <i class="bi bi-heart-fill"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Mascotas Córdoba</h2>
+        <p class="text-body-secondary mb-0">Programa Municipal de Bienestar Animal</p>
+      </div>
+
+      <form [formRoot]="loginForm" novalidate>
+        <div class="mb-3">
+          <label for="icuil" class="form-label">CUIL</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input appAutofocus type="text" id="icuil" [formField]="loginForm.cuil" class="form-control"
+              placeholder="Ingrese su CUIL" />
+          </div>
+          @if (loginForm.cuil().touched() && loginForm.cuil().invalid()) {
+          <small class="text-danger">Debe informar su CUIL.</small>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="iclave" class="form-label">Contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="iclave" [formField]="loginForm.clave" class="form-control"
+              placeholder="Ingrese su contraseña" />
+          </div>
+          @if (loginForm.clave().touched() && loginForm.clave().invalid()) {
+          <small class="text-danger">Debe informar su contraseña.</small>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 py-2">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar sesión
+        </button>
+      </form>
+
+      <p class="text-center text-body-secondary mt-4 mb-0">
+        <small>Acceso seguro al Programa Municipal de Bienestar Animal</small>
+      </p>
+    </div>
+  </div>
+</div>

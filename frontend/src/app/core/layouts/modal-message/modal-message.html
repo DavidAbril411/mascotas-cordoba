@@ -1,0 +1,12 @@
+<div mat-dialog-title class="d-flex justify-content-between align-items-center">
+  <h4>{{ title }}</h4>
+  <button type="button" mat-icon-button aria-label="Cerrar" (click)="ref.close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <p>{{ message.text }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="ref.close()">Cerrar</button>
+</mat-dialog-actions>

@@ -1,0 +1,8 @@
+<div class="container py-5">
+  @if (usuario(); as u) {
+  <div class="alert alert-success">Sesión iniciada: {{ u.nombre }} {{ u.apellido }} ({{ u.razonSocial }})</div>
+  }
+  @else {
+  <div class="alert alert-info">No hay una sesión iniciada.</div>
+  }
+</div>
