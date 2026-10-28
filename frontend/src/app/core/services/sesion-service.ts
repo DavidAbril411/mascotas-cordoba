@@ -1,7 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 
 export interface IUsuario {
-  idSesion: string;
   idCiudadano: number;
   apellido: string;
   nombre: string;
@@ -9,6 +8,7 @@ export interface IUsuario {
   correo: string;
   idRefugio: number;
   razonSocial: string;
+  token: string;
 }
 
 @Injectable({
@@ -16,14 +16,20 @@ export interface IUsuario {
 })
 export class SesionService {
 
-  private _usuario = signal<IUsuario | null>(null);
+  private _usuario = signal<IUsuario | null>(JSON.parse(localStorage.getItem('usuario') ?? 'null'));
 
   readonly usuario = computed(() =>
     this._usuario()
   );
 
   iniciar(usuario: IUsuario): void {
+    localStorage.setItem('usuario', JSON.stringify(usuario));
     this._usuario.set(usuario);
+  }
+
+  cerrar(): void {
+    localStorage.removeItem('usuario');
+    this._usuario.set(null);
   }
 
 }

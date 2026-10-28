@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  font-size: 1.25rem;
+}
+
+.foto {
+  height: 230px;
+  object-fit: cover;
+}
+
+.dato {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  background-color: #f1f3f5;
+}

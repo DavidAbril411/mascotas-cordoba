@@ -29,3 +29,28 @@ body {
   margin: 0;
   height: 100%;
 }
+
+.modal-publicacion {
+  --mat-dialog-container-shape: 0.5rem;
+  --mat-dialog-container-color: var(--bs-body-bg);
+  --mat-dialog-headline-padding: 0.75rem 0.75rem 0.75rem 1rem;
+  --mat-dialog-with-actions-content-padding: 1rem;
+  --mat-dialog-actions-padding: 0.75rem 1rem;
+  --mat-dialog-supporting-text-font: var(--bs-body-font-family);
+  --mat-dialog-supporting-text-size: 1rem;
+  --mat-dialog-supporting-text-line-height: 1.5;
+  --mat-dialog-supporting-text-tracking: normal;
+  --mat-dialog-supporting-text-color: var(--bs-body-color);
+
+  .mat-mdc-dialog-title::before {
+    display: none;
+  }
+
+  .mat-mdc-dialog-content {
+    max-height: calc(100vh - 10rem);
+  }
+
+  .mat-mdc-dialog-actions {
+    border-top: var(--bs-border-width) solid var(--bs-border-color);
+  }
+}
