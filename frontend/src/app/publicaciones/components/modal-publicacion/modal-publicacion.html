@@ -1,0 +1,93 @@
+<form [formRoot]="pubForm">
+  <div mat-dialog-title class="d-flex justify-content-between align-items-center bg-success text-white">
+    <h5 class="mb-0 fw-normal"><i class="bi bi-plus-circle me-2"></i>Nueva publicación de adopción</h5>
+    <button type="button" mat-icon-button class="text-white" aria-label="Cerrar" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <h6 class="fw-bold mt-2 mb-3">Información de la mascota</h6>
+    <div class="row">
+      <div class="col-12 mb-3">
+        <label for="inombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <input appAutofocus type="text" id="inombre" [formField]="pubForm.nombre" class="form-control"
+          placeholder="Ej: Manchita" />
+        @if (pubForm.nombre().touched() && pubForm.nombre().invalid()) {
+        <small class="text-danger">Debe informar el nombre.</small>
+        }
+      </div>
+      <div class="col-12 col-md-4 mb-3">
+        <label for="iespecie" class="form-label">Especie <span class="text-danger">*</span></label>
+        <select id="iespecie" [formField]="pubForm.codEspecie" class="form-select">
+          <option value="">Seleccionar...</option>
+          @for (e of especies; track e.codigo) {
+          <option [value]="e.codigo">{{ e.nombre }}</option>
+          }
+        </select>
+        @if (pubForm.codEspecie().touched() && pubForm.codEspecie().invalid()) {
+        <small class="text-danger">Debe seleccionar la especie.</small>
+        }
+      </div>
+      <div class="col-12 col-md-4 mb-3">
+        <label for="isexo" class="form-label">Sexo <span class="text-danger">*</span></label>
+        <select id="isexo" [formField]="pubForm.sexo" class="form-select">
+          <option value="">Seleccionar...</option>
+          <option value="M">Macho</option>
+          <option value="H">Hembra</option>
+        </select>
+        @if (pubForm.sexo().touched() && pubForm.sexo().invalid()) {
+        <small class="text-danger">Debe seleccionar el sexo.</small>
+        }
+      </div>
+      <div class="col-12 col-md-4 mb-3">
+        <label for="iedad" class="form-label">Edad aproximada</label>
+        <input type="number" id="iedad" [formField]="pubForm.edad" class="form-control" placeholder="Ej: 2 años" />
+        @if (pubForm.edad().touched() && pubForm.edad().invalid()) {
+        <small class="text-danger">La edad no puede ser negativa.</small>
+        }
+      </div>
+      <div class="col-12 col-md-6 mb-3">
+        <label for="iraza" class="form-label">Raza</label>
+        <input type="text" id="iraza" [formField]="pubForm.raza" class="form-control" placeholder="Ej: Mestizo" />
+      </div>
+    </div>
+
+    <hr class="mt-1 mb-4" />
+
+    <h6 class="fw-bold mb-3"><i class="bi bi-card-text me-2"></i>Descripción de la publicación</h6>
+    <div class="mb-3">
+      <label for="icaracteristicas" class="form-label">Descripción general <span class="text-danger">*</span></label>
+      <textarea id="icaracteristicas" rows="4" [formField]="pubForm.caracteristicasMascota" class="form-control"
+        placeholder="Contá cómo es la mascota, su personalidad, comportamiento y características..."></textarea>
+      @if (pubForm.caracteristicasMascota().touched() && pubForm.caracteristicasMascota().invalid()) {
+      <small class="text-danger">Debe informar la descripción general.</small>
+      }
+    </div>
+    <div class="mb-3">
+      <label for="icondicion" class="form-label">Condiciones básicas de adopción <span class="text-danger">*</span></label>
+      <textarea id="icondicion" rows="3" [formField]="pubForm.condicionAdopcion" class="form-control"
+        placeholder="Ej: Se requiere entrevista previa y compromiso de tenencia responsable."></textarea>
+      @if (pubForm.condicionAdopcion().touched() && pubForm.condicionAdopcion().invalid()) {
+      <small class="text-danger">Debe informar las condiciones de adopción.</small>
+      }
+    </div>
+
+    <hr class="mt-1 mb-4" />
+
+    <h6 class="fw-bold mb-3"><i class="bi bi-camera me-2"></i>Fotografía</h6>
+    <div class="mb-2">
+      <label for="ifoto" class="form-label">Imagen de la mascota <span class="text-danger">*</span></label>
+      <input type="file" id="ifoto" accept="image/*" class="form-control" (change)="setFoto($event)" />
+      <div class="form-text">La fotografía ayuda a facilitar el proceso de adopción.</div>
+      @if (pubForm.foto().touched() && pubForm.foto().invalid()) {
+      <small class="text-danger">Debe seleccionar una imagen.</small>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button type="button" class="btn btn-secondary" (click)="close()">Cancelar</button>
+    <button type="submit" class="btn btn-success ms-2"><i class="bi bi-check-lg me-2"></i>Publicar mascota</button>
+  </mat-dialog-actions>
+</form>

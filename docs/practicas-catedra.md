@@ -520,3 +520,11 @@ Por omisión (no aparece en ningún ejemplo; no introducir sin motivo):
 - **Diagrama `MascotasServicios.pdf`** (proceso batch "Registro de mascotas pendientes"): obtener veterinarias Activas → por cada una `ObtenerMascotasPendientes()` → por cada mascota buscar por microchip (si tiene) o por nombre + edad aproximada + CUIL del dueño → si existe obtener NRM, si no generar NRM y registrar → registrar NRM en "pendientes de informar" → ante errores guardar log (veterinaria, [mascota], fecha, detalle) y acumular → al final, si hubo errores, enviar mail con los logs.
 - **Plantilla SOA:** Servicio 1 ubicado en la **Veterinaria**, operaciones `ObtenerMascotasPendientes()` (token, nro. de página opcional, fecha de corte opcional → código, mensaje, lista de mascotas) y `ActualizarNRM()` (token, ID interno, NRM → código 200/400/401/404/500 y mensaje). El proceso 2 "Informar NRM a las veterinarias" usa `ActualizarNRM()`.
 - Modelos lógicos: `02-Modelo-logico-veterinaria.pdf` (sistema de la veterinaria) y `03-Modelo-logico-mascotas-cba.pdf` (municipalidad: `veterinarias`, `configuracion_veterinarias`, `atributos_sistema`, `mascotas` con `nro_reg_municipal`, `informacion_sanitaria`, `publicaciones_adopcion`, etc.).
+
+---
+
+## 16. Excepciones habilitadas por David
+
+- **REST sin capa `services`** (2026-10-16, confirmado por la profe): Resource → Repository; varias escrituras van en un solo SP.
+- **JWT** (2026-10-28) para la sesión del portal, además de la API Key. Mínimo y con la misma forma que `ApiKeyFilter`: `config/JwtUtil` (librería `jjwt`, firma y lee el token) y `config/JwtFilter` (`OncePerRequestFilter`, header `Authorization: Bearer <token>`, 401 con mensaje si falta o venció). El filtro deja el `idRefugio` del token como atributo del request y el Resource lo recibe con `@RequestAttribute`. Sin Spring Security.
+- **Tablas nuevas** en la base sí; las del modelo lógico de la profe no se modifican (sólo se cargan datos, por ejemplo las especies en `dominio_rasgos_mascotas`).

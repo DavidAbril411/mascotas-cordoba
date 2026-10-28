@@ -14,9 +14,9 @@ public class SesionesRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<UsuarioBE> insertarSesion(String cuil, String clave) {
+    public List<UsuarioBE> getUsuarioRefugio(String cuil, String clave) {
         return jdbcTemplate.query(
-            "exec dbo.ins_sesion ?, ?",
+            "exec dbo.get_usuario_refugio ?, ?",
             new BeanPropertyRowMapper<>(UsuarioBE.class),
             cuil,
             clave

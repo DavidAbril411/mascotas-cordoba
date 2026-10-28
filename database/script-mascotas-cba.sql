@@ -1,6 +1,7 @@
 use mascotas_cba
 go
 
+drop procedure if exists dbo.ins_sesion
 drop table if exists dbo.sesiones
 drop table if exists dbo.publicaciones_adopcion
 drop table if exists dbo.caracteristicas_mascotas
@@ -216,6 +217,11 @@ create table dbo.dominio_rasgos_mascotas
 )
 go
 
+insert into dbo.dominio_rasgos_mascotas(cod_rasgo, nro_valor_dominio, nom_valor_dominio)
+values('ESP', 1, 'Perro'),
+      ('ESP', 2, 'Gato')
+go
+
 /* ------------------------------------------
    Tabla: caracteristicas_mascotas
    ------------------------------------------ */
@@ -253,21 +259,6 @@ create table dbo.publicaciones_adopcion
  condicion_adopcion		varchar(4000)	null,
  foto					varchar(max)	null,
  estado_publicacion		varchar(1)		not null	-- A: Activa, P: Pausada, F: Finalizada
-)
-go
-
-/* ------------------------------------------
-   Tabla: sesiones (agregada, no está en el modelo lógico)
-   ------------------------------------------ */
-create table dbo.sesiones
-(
- id_sesion				uniqueidentifier	not null
-						constraint PK__sesiones__END primary key,
- id_ciudadano			integer			not null
-						constraint FK__sesiones__ciudadanos__END references dbo.ciudadanos,
- id_refugio				integer			not null
-						constraint FK__sesiones__refugios__END references dbo.refugios,
- fecha_inicio			datetime		not null
 )
 go
 
@@ -359,9 +350,9 @@ go
 -- declare @id integer execute dbo.ins_refugio @razon_social='REFUGIO PATITAS', @correo='patitas@refugio.org', @habilitacion_municipal='HM-0002', @apellido='GOMEZ', @nombre='ANA', @cuil='27234567894', @clave='clave123', @correo_responsable='ana@mail.com', @id_refugio=@id output select @id
 
 /* ------------------------------------------
-   Procedimiento: ins_sesion
+   Procedimiento: get_usuario_refugio
    ------------------------------------------ */
-create or alter procedure dbo.ins_sesion
+create or alter procedure dbo.get_usuario_refugio
 (
  @cuil			varchar(11),
  @clave			varchar(20)
@@ -369,15 +360,14 @@ create or alter procedure dbo.ins_sesion
 as
 begin
 
-  set nocount on
-
-  declare @id_sesion		uniqueidentifier = newid(),
-          @id_ciudadano	integer,
-          @id_refugio		integer
-
   select top 1
-         @id_ciudadano = c.id_ciudadano,
-         @id_refugio   = r.id_refugio
+         idCiudadano = c.id_ciudadano,
+         apellido    = c.apellido,
+         nombre      = c.nombre,
+         cuil        = c.cuil,
+         correo      = c.correo,
+         idRefugio   = r.id_refugio,
+         razonSocial = r.razon_social
     from dbo.ciudadanos c (nolock)
          join dbo.refugios r (nolock)
            on c.id_ciudadano = r.id_responsable
@@ -386,31 +376,162 @@ begin
      and c.habilitado = 1
    order by r.id_refugio
 
-  if @id_ciudadano is not null
-     insert into dbo.sesiones(id_sesion, id_ciudadano, id_refugio, fecha_inicio)
-     values(@id_sesion, @id_ciudadano, @id_refugio, getdate())
+end
+go
 
-  set nocount off
+-- execute dbo.get_usuario_refugio @cuil='20123456789', @clave='123456'
 
-  select idSesion    = convert(varchar(36), s.id_sesion),
-         idCiudadano = c.id_ciudadano,
-         apellido    = c.apellido,
-         nombre      = c.nombre,
-         cuil        = c.cuil,
-         correo      = c.correo,
-         idRefugio   = r.id_refugio,
-         razonSocial = r.razon_social
-    from dbo.sesiones s (nolock)
-         join dbo.ciudadanos c (nolock)
-           on s.id_ciudadano = c.id_ciudadano
-         join dbo.refugios r (nolock)
-           on s.id_refugio = r.id_refugio
-   where s.id_sesion = @id_sesion
+/* ------------------------------------------
+   Procedimiento: get_especies
+   ------------------------------------------ */
+create or alter procedure dbo.get_especies
+as
+begin
+
+  select codigo = nro_valor_dominio,
+         nombre = nom_valor_dominio
+    from dbo.dominio_rasgos_mascotas (nolock)
+   where cod_rasgo = 'ESP'
+   order by nom_valor_dominio
 
 end
 go
 
--- execute dbo.ins_sesion @cuil='20123456789', @clave='123456'
+-- execute dbo.get_especies
+
+/* ------------------------------------------
+   Procedimiento: get_publicaciones
+   ------------------------------------------ */
+create or alter procedure dbo.get_publicaciones
+(
+ @id_refugio		integer
+)
+as
+begin
+
+  select nroPublicacion         = p.nro_publicacion,
+         nrm                    = 'MUN-' + right('000000' + convert(varchar(10), m.nro_reg_municipal), 6),
+         nombre                 = m.nombre,
+         nomEspecie             = iif(m.sexo = 'H', left(d.nom_valor_dominio, len(d.nom_valor_dominio) - 1) + 'a', d.nom_valor_dominio),
+         sexo                   = m.sexo,
+         edad                   = case
+                                    when m.año_nacimiento is null then null
+                                    when year(getdate()) - m.año_nacimiento = 1 then '1 año'
+                                    else convert(varchar(5), year(getdate()) - m.año_nacimiento) + ' años'
+                                  end,
+         raza                   = r.valor_caracteristica,
+         caracteristicasMascota = p.caracteristicas_mascota,
+         condicionAdopcion      = p.condicion_adopcion,
+         foto                   = p.foto,
+         estadoPublicacion      = p.estado_publicacion
+    from dbo.publicaciones_adopcion p (nolock)
+         join dbo.mascotas m (nolock)
+           on p.nro_reg_municipal = m.nro_reg_municipal
+         left join dbo.caracteristicas_mascotas e (nolock)
+           on m.nro_reg_municipal = e.nro_reg_municipal
+          and e.cod_rasgo         = 'ESP'
+         left join dbo.dominio_rasgos_mascotas d (nolock)
+           on e.cod_rasgo         = d.cod_rasgo
+          and e.nro_valor_dominio = d.nro_valor_dominio
+         left join dbo.caracteristicas_mascotas r (nolock)
+           on m.nro_reg_municipal = r.nro_reg_municipal
+          and r.cod_rasgo         = 'RAZ'
+   where p.id_refugio = @id_refugio
+   order by p.nro_publicacion
+
+end
+go
+
+-- execute dbo.get_publicaciones @id_refugio=1
+
+/* ------------------------------------------
+   Procedimiento: ins_publicacion
+   ------------------------------------------ */
+create or alter procedure dbo.ins_publicacion
+(
+ @id_refugio				integer,
+ @nombre					varchar(100),
+ @cod_especie				smallint,
+ @sexo						varchar(1),
+ @edad						smallint		= null,
+ @raza						varchar(255)	= null,
+ @caracteristicas_mascota	varchar(4000),
+ @condicion_adopcion		varchar(4000),
+ @foto						varchar(max),
+ @nro_publicacion			integer			output
+)
+as
+begin
+
+  set nocount on
+
+  declare @nro_reg_municipal integer
+
+  if trim(@raza) = ''
+     set @raza = null
+
+  insert into dbo.mascotas(nombre, sexo, año_nacimiento, microchip, vive, id_responsable, id_refugio)
+  values(trim(@nombre),
+         @sexo,
+         year(getdate()) - @edad,
+         null,
+         1,
+         null,
+         @id_refugio)
+
+  set @nro_reg_municipal = @@identity
+
+  insert into dbo.caracteristicas_mascotas(nro_reg_municipal, cod_rasgo, nro_caracteristica, nro_valor_dominio, valor_caracteristica)
+  values(@nro_reg_municipal, 'ESP', 1, @cod_especie, null)
+
+  if @raza is not null
+     insert into dbo.caracteristicas_mascotas(nro_reg_municipal, cod_rasgo, nro_caracteristica, nro_valor_dominio, valor_caracteristica)
+     values(@nro_reg_municipal, 'RAZ', 1, null, trim(@raza))
+
+  insert into dbo.publicaciones_adopcion(nro_reg_municipal, id_refugio, fecha_publicacion, caracteristicas_mascota, condicion_adopcion, foto, estado_publicacion)
+  values(@nro_reg_municipal,
+         @id_refugio,
+         getdate(),
+         trim(@caracteristicas_mascota),
+         trim(@condicion_adopcion),
+         @foto,
+         'A')
+
+  set @nro_publicacion = @@identity
+
+  set nocount off
+
+end
+go
+
+-- declare @nro integer execute dbo.ins_publicacion @id_refugio=1, @nombre='Mora', @cod_especie=1, @sexo='H', @edad=2, @caracteristicas_mascota='Perrita cariñosa.', @condicion_adopcion='Entrevista previa.', @foto='data:image/jpeg;base64,...', @nro_publicacion=@nro output select @nro
+
+/* ------------------------------------------
+   Procedimiento: act_publicacion
+   ------------------------------------------ */
+create or alter procedure dbo.act_publicacion
+(
+ @nro_publicacion		integer,
+ @id_refugio			integer,
+ @estado_publicacion	varchar(1)
+)
+as
+begin
+
+  set nocount on
+
+  update dbo.publicaciones_adopcion
+     set estado_publicacion = @estado_publicacion
+   where nro_publicacion    = @nro_publicacion
+     and id_refugio         = @id_refugio
+     and estado_publicacion <> 'F'
+
+  set nocount off
+
+end
+go
+
+-- execute dbo.act_publicacion @nro_publicacion=1, @id_refugio=1, @estado_publicacion='P'
 
 /* ------------------------------------------
    Datos iniciales: usuario de refugio
