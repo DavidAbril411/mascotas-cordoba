@@ -23,7 +23,6 @@ public class JwtUtil {
     public String crearToken(UsuarioBE usuario) {
         return Jwts.builder()
                 .subject(usuario.getCuil())
-                .claim("idCiudadano", usuario.getIdCiudadano())
                 .claim("idRefugio", usuario.getIdRefugio())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
