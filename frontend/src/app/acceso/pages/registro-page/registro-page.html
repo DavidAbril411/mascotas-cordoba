@@ -16,31 +16,24 @@
             <label for="irazon_social" class="form-label">Razón social <span class="text-danger">*</span></label>
             <input appAutofocus type="text" id="irazon_social" [formField]="refForm.razonSocial" class="form-control"
               placeholder="Ej: Refugio Patitas" />
-            @if (refForm.razonSocial().touched() && refForm.razonSocial().invalid()) {
-            <small class="text-danger">Debe informar la razón social.</small>
-            }
+            @if (refForm.razonSocial().touched() && refForm.razonSocial().invalid()) {<small class="text-danger">{{
+              refForm.razonSocial().errors()[0]?.message }}</small>}
           </div>
           <div class="col-12 col-md-6 mb-3">
             <label for="icorreo" class="form-label">Correo <span class="text-danger">*</span></label>
             <input type="email" id="icorreo" [formField]="refForm.correo" class="form-control"
               placeholder="Ej: contacto@refugio.org" />
             @if (refForm.correo().touched() && refForm.correo().invalid()) {
-            <small class="text-danger">
-              @if (refForm.correo().errors()[0]?.kind === 'required') {
-              Debe informar el correo.
-              }
-              @else {
-              El correo es inválido.
-              }
-            </small>
+            <small class="text-danger">{{ refForm.correo().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
-            <label for="ihabilitacion" class="form-label">Habilitación municipal <span class="text-danger">*</span></label>
+            <label for="ihabilitacion" class="form-label">Habilitación municipal <span
+                class="text-danger">*</span></label>
             <input type="text" id="ihabilitacion" [formField]="refForm.habilitacionMunicipal" class="form-control"
               placeholder="Ej: HM-0002" />
             @if (refForm.habilitacionMunicipal().touched() && refForm.habilitacionMunicipal().invalid()) {
-            <small class="text-danger">Debe informar la habilitación municipal.</small>
+            <small class="text-danger">{{ refForm.habilitacionMunicipal().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
@@ -64,7 +57,7 @@
             <input type="text" id="iapellido" [formField]="refForm.responsable.apellido" class="form-control"
               placeholder="Ej: Gómez" />
             @if (refForm.responsable.apellido().touched() && refForm.responsable.apellido().invalid()) {
-            <small class="text-danger">Debe informar el apellido.</small>
+            <small class="text-danger">{{ refForm.responsable.apellido().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
@@ -72,7 +65,7 @@
             <input type="text" id="inombre" [formField]="refForm.responsable.nombre" class="form-control"
               placeholder="Ej: Ana" />
             @if (refForm.responsable.nombre().touched() && refForm.responsable.nombre().invalid()) {
-            <small class="text-danger">Debe informar el nombre.</small>
+            <small class="text-danger">{{ refForm.responsable.nombre().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
@@ -80,14 +73,7 @@
             <input type="text" id="icuil" [formField]="refForm.responsable.cuil" class="form-control"
               placeholder="Ej: 27234567894" />
             @if (refForm.responsable.cuil().touched() && refForm.responsable.cuil().invalid()) {
-            <small class="text-danger">
-              @if (refForm.responsable.cuil().errors()[0]?.kind === 'required') {
-              Debe informar el CUIL.
-              }
-              @else {
-              El CUIL debe tener 11 números, sin guiones.
-              }
-            </small>
+            <small class="text-danger">{{ refForm.responsable.cuil().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
@@ -95,54 +81,34 @@
             <input type="email" id="icorreo_responsable" [formField]="refForm.responsable.correo" class="form-control"
               placeholder="Ej: ana@mail.com" />
             @if (refForm.responsable.correo().touched() && refForm.responsable.correo().invalid()) {
-            <small class="text-danger">
-              @if (refForm.responsable.correo().errors()[0]?.kind === 'required') {
-              Debe informar el correo.
-              }
-              @else {
-              El correo es inválido.
-              }
-            </small>
+            <small class="text-danger">{{ refForm.responsable.correo().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
             <label for="itelefono_responsable" class="form-label">Teléfono</label>
-            <input type="text" id="itelefono_responsable" [formField]="refForm.responsable.telefono" class="form-control"
-              placeholder="Ej: 3515551111" />
+            <input type="text" id="itelefono_responsable" [formField]="refForm.responsable.telefono"
+              class="form-control" placeholder="Ej: 3515551111" />
           </div>
           <div class="col-12 col-md-6 mb-3">
             <label for="idomicilio_responsable" class="form-label">Domicilio</label>
-            <input type="text" id="idomicilio_responsable" [formField]="refForm.responsable.domicilio" class="form-control"
-              placeholder="Ej: Bv. San Juan 456" />
+            <input type="text" id="idomicilio_responsable" [formField]="refForm.responsable.domicilio"
+              class="form-control" placeholder="Ej: Bv. San Juan 456" />
           </div>
           <div class="col-12 col-md-6 mb-3">
             <label for="iclave" class="form-label">Contraseña <span class="text-danger">*</span></label>
             <input type="password" id="iclave" [formField]="refForm.responsable.clave" class="form-control"
               placeholder="Mínimo 6 caracteres" />
             @if (refForm.responsable.clave().touched() && refForm.responsable.clave().invalid()) {
-            <small class="text-danger">
-              @if (refForm.responsable.clave().errors()[0]?.kind === 'required') {
-              Debe informar la contraseña.
-              }
-              @else {
-              La contraseña debe tener entre 6 y 20 caracteres.
-              }
-            </small>
+            <small class="text-danger">{{ refForm.responsable.clave().errors()[0]?.message }}</small>
             }
           </div>
           <div class="col-12 col-md-6 mb-3">
-            <label for="iconfirmar_clave" class="form-label">Confirmar contraseña <span class="text-danger">*</span></label>
-            <input type="password" id="iconfirmar_clave" [formField]="refForm.responsable.confirmarClave" class="form-control"
-              placeholder="Repita la contraseña" />
+            <label for="iconfirmar_clave" class="form-label">Confirmar contraseña <span
+                class="text-danger">*</span></label>
+            <input type="password" id="iconfirmar_clave" [formField]="refForm.responsable.confirmarClave"
+              class="form-control" placeholder="Repita la contraseña" />
             @if (refForm.responsable.confirmarClave().touched() && refForm.responsable.confirmarClave().invalid()) {
-            <small class="text-danger">
-              @if (refForm.responsable.confirmarClave().errors()[0]?.kind === 'required') {
-              Debe confirmar la contraseña.
-              }
-              @else {
-              Las contraseñas no coinciden.
-              }
-            </small>
+            <small class="text-danger">{{ refForm.responsable.confirmarClave().errors()[0]?.message }}</small>
             }
           </div>
         </div>

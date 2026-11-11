@@ -47,8 +47,8 @@ export class LoginPage implements OnInit {
 
   private initForm(): void {
     this.loginForm = form(this.login, (schemaPath) => {
-      required(schemaPath.cuil);
-      required(schemaPath.clave);
+      required(schemaPath.cuil, { message: 'Debe informar su CUIL.' });
+      required(schemaPath.clave, { message: 'Debe informar su contraseña.' });
     }, {
       injector: this._injector,
       submission: {
