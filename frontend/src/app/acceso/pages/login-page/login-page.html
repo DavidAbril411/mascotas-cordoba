@@ -18,7 +18,7 @@
               placeholder="Ingrese su CUIL" />
           </div>
           @if (loginForm.cuil().touched() && loginForm.cuil().invalid()) {
-          <small class="text-danger">Debe informar su CUIL.</small>
+          <small class="text-danger">{{ loginForm.cuil().errors()[0]?.message }}</small>
           }
         </div>
 
@@ -30,7 +30,7 @@
               placeholder="Ingrese su contraseña" />
           </div>
           @if (loginForm.clave().touched() && loginForm.clave().invalid()) {
-          <small class="text-danger">Debe informar su contraseña.</small>
+          <small class="text-danger">{{ loginForm.clave().errors()[0]?.message }}</small>
           }
         </div>
 

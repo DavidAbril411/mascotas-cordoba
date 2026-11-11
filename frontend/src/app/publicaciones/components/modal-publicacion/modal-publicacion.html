@@ -14,19 +14,19 @@
         <input appAutofocus type="text" id="inombre" [formField]="pubForm.nombre" class="form-control"
           placeholder="Ej: Manchita" />
         @if (pubForm.nombre().touched() && pubForm.nombre().invalid()) {
-        <small class="text-danger">Debe informar el nombre.</small>
+        <small class="text-danger">{{ pubForm.nombre().errors()[0]?.message }}</small>
         }
       </div>
       <div class="col-12 col-md-4 mb-3">
         <label for="iespecie" class="form-label">Especie <span class="text-danger">*</span></label>
         <select id="iespecie" [formField]="pubForm.codEspecie" class="form-select">
           <option value="">Seleccionar...</option>
-          @for (e of especies; track e.codigo) {
+          @for (e of especies(); track e.codigo) {
           <option [value]="e.codigo">{{ e.nombre }}</option>
           }
         </select>
         @if (pubForm.codEspecie().touched() && pubForm.codEspecie().invalid()) {
-        <small class="text-danger">Debe seleccionar la especie.</small>
+        <small class="text-danger">{{ pubForm.codEspecie().errors()[0]?.message }}</small>
         }
       </div>
       <div class="col-12 col-md-4 mb-3">
@@ -37,14 +37,14 @@
           <option value="H">Hembra</option>
         </select>
         @if (pubForm.sexo().touched() && pubForm.sexo().invalid()) {
-        <small class="text-danger">Debe seleccionar el sexo.</small>
+        <small class="text-danger">{{ pubForm.sexo().errors()[0]?.message }}</small>
         }
       </div>
       <div class="col-12 col-md-4 mb-3">
         <label for="iedad" class="form-label">Edad aproximada</label>
         <input type="number" id="iedad" [formField]="pubForm.edad" class="form-control" placeholder="Ej: 2 años" />
         @if (pubForm.edad().touched() && pubForm.edad().invalid()) {
-        <small class="text-danger">La edad no puede ser negativa.</small>
+        <small class="text-danger">{{ pubForm.edad().errors()[0]?.message }}</small>
         }
       </div>
       <div class="col-12 col-md-6 mb-3">
@@ -61,7 +61,7 @@
       <textarea id="icaracteristicas" rows="4" [formField]="pubForm.caracteristicasMascota" class="form-control"
         placeholder="Contá cómo es la mascota, su personalidad, comportamiento y características..."></textarea>
       @if (pubForm.caracteristicasMascota().touched() && pubForm.caracteristicasMascota().invalid()) {
-      <small class="text-danger">Debe informar la descripción general.</small>
+      <small class="text-danger">{{ pubForm.caracteristicasMascota().errors()[0]?.message }}</small>
       }
     </div>
     <div class="mb-3">
@@ -69,7 +69,7 @@
       <textarea id="icondicion" rows="3" [formField]="pubForm.condicionAdopcion" class="form-control"
         placeholder="Ej: Se requiere entrevista previa y compromiso de tenencia responsable."></textarea>
       @if (pubForm.condicionAdopcion().touched() && pubForm.condicionAdopcion().invalid()) {
-      <small class="text-danger">Debe informar las condiciones de adopción.</small>
+      <small class="text-danger">{{ pubForm.condicionAdopcion().errors()[0]?.message }}</small>
       }
     </div>
 
@@ -81,7 +81,7 @@
       <input type="file" id="ifoto" accept="image/*" class="form-control" (change)="setFoto($event)" />
       <div class="form-text">La fotografía ayuda a facilitar el proceso de adopción.</div>
       @if (pubForm.foto().touched() && pubForm.foto().invalid()) {
-      <small class="text-danger">Debe seleccionar una imagen.</small>
+      <small class="text-danger">{{ pubForm.foto().errors()[0]?.message }}</small>
       }
     </div>
   </mat-dialog-content>

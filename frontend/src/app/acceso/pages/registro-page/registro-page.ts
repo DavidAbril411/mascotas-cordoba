@@ -53,26 +53,26 @@ export class RegistroPage implements OnInit {
 
   private initForm(): void {
     this.refForm = form(this.refugio, (schemaPath) => {
-      required(schemaPath.razonSocial);
+      required(schemaPath.razonSocial, { message: 'Debe informar la razón social.' });
       maxLength(schemaPath.razonSocial, 255);
 
-      required(schemaPath.correo);
-      email(schemaPath.correo);
+      required(schemaPath.correo, { message: 'Debe informar el correo.' });
+      email(schemaPath.correo, { message: 'El correo es inválido.' });
       maxLength(schemaPath.correo, 255);
 
       maxLength(schemaPath.telefono, 20);
       maxLength(schemaPath.domicilio, 255);
 
-      required(schemaPath.habilitacionMunicipal);
+      required(schemaPath.habilitacionMunicipal, { message: 'Debe informar la habilitación municipal.' });
       maxLength(schemaPath.habilitacionMunicipal, 20);
 
-      required(schemaPath.responsable.apellido);
+      required(schemaPath.responsable.apellido, { message: 'Debe informar el apellido.' });
       maxLength(schemaPath.responsable.apellido, 40);
 
-      required(schemaPath.responsable.nombre);
+      required(schemaPath.responsable.nombre, { message: 'Debe informar el nombre.' });
       maxLength(schemaPath.responsable.nombre, 100);
 
-      required(schemaPath.responsable.cuil);
+      required(schemaPath.responsable.cuil, { message: 'Debe informar el CUIL.' });
       validate(schemaPath.responsable.cuil, ({ value }) => {
         if (value() && !/^\d{11}$/.test(value())) {
           return {
@@ -83,18 +83,18 @@ export class RegistroPage implements OnInit {
         return null;
       });
 
-      required(schemaPath.responsable.correo);
-      email(schemaPath.responsable.correo);
+      required(schemaPath.responsable.correo, { message: 'Debe informar el correo.' });
+      email(schemaPath.responsable.correo, { message: 'El correo es inválido.' });
       maxLength(schemaPath.responsable.correo, 255);
 
       maxLength(schemaPath.responsable.telefono, 20);
       maxLength(schemaPath.responsable.domicilio, 255);
 
-      required(schemaPath.responsable.clave);
-      minLength(schemaPath.responsable.clave, 6);
+      required(schemaPath.responsable.clave, { message: 'Debe informar la contraseña.' });
+      minLength(schemaPath.responsable.clave, 6, { message: 'La contraseña debe tener al menos 6 caracteres.' });
       maxLength(schemaPath.responsable.clave, 20);
 
-      required(schemaPath.responsable.confirmarClave);
+      required(schemaPath.responsable.confirmarClave, { message: 'Debe confirmar la contraseña.' });
       validate(schemaPath.responsable.confirmarClave, ({ value, valueOf }) => {
         if (value() !== valueOf(schemaPath.responsable.clave)) {
           return {
