@@ -23,7 +23,7 @@ public class SesionesResource {
 
     @PostMapping
     public ResponseEntity iniciarSesion(@RequestBody LoginDataBE login) {
-        List<UsuarioBE> usuarios = repository.getUsuarioRefugio(login.getCuil(), login.getClave());
+        List<UsuarioBE> usuarios = repository.getUsuarioRefugio(login);
 
         if (usuarios.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("El CUIL o la contraseña son incorrectos.");

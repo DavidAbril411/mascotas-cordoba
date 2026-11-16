@@ -7,6 +7,7 @@ import ar.edu.ubp.das.mascotasrest.repositories.RefugiosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class RefugiosResource {
     private CiudadanosRepository ciudadanosRepository;
 
     @PostMapping
+    @Transactional
     public ResponseEntity registrarRefugio(@RequestBody RefugioDataBE refugio) {
         CiudadanoDataBE responsable = refugio.getResponsable();
 
@@ -35,7 +37,7 @@ public class RefugiosResource {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Faltan datos obligatorios del refugio o del responsable.");
         }
 
-        if (!ciudadanosRepository.getCiudadano(responsable.getCuil()).isEmpty()) {
+        if (!ciudadanosRepository.getCiudadano(responsable).isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El CUIL del responsable ya está registrado.");
         }
 

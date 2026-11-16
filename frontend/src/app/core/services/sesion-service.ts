@@ -16,20 +16,30 @@ export interface IUsuario {
 })
 export class SesionService {
 
-  private _usuario = signal<IUsuario | null>(JSON.parse(localStorage.getItem('usuario') ?? 'null'));
+  private _usuario = signal<IUsuario | null>(this.getUsuarioGuardado());
 
   readonly usuario = computed(() =>
     this._usuario()
   );
 
   iniciar(usuario: IUsuario): void {
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+    sessionStorage.setItem('usuario', JSON.stringify(usuario));
     this._usuario.set(usuario);
   }
 
   cerrar(): void {
-    localStorage.removeItem('usuario');
+    sessionStorage.removeItem('usuario');
     this._usuario.set(null);
+  }
+
+  private getUsuarioGuardado(): IUsuario | null {
+    try {
+      const usuario = JSON.parse(sessionStorage.getItem('usuario') ?? 'null');
+      return usuario?.token ? usuario : null;
+    }
+    catch {
+      return null;
+    }
   }
 
 }

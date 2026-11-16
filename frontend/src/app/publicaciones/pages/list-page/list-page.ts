@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { PublicacionesResource } from '../../api/resources/publicaciones-resource';
 import { IPublicacion } from '../../api/models/i-publicacion';
 import { ModalPublicacion } from '../../components/modal-publicacion/modal-publicacion';
+import { ModalFinalizarPublicacion } from '../../components/modal-finalizar-publicacion/modal-finalizar-publicacion';
 import { SesionService } from '../../../core/services/sesion-service';
 import { FiltrarPorPipe } from '../../../shared/pipes/filtrar-por-pipe';
 
@@ -52,17 +53,34 @@ export class ListPage {
       }
     });
   }
+
   setEstado(nroPublicacion: number, estadoPublicacion: string): void {
-    this._api.actPublicacion(nroPublicacion, estadoPublicacion).subscribe(() => {
-      this.listado.update((publicaciones: IPublicacion[]) => publicaciones.map(p =>
-        p.nroPublicacion === nroPublicacion ? { ...p, estadoPublicacion } : p
-      ));
-    });
+    if (estadoPublicacion === 'F') {
+      const ref = this._dialog.open(ModalFinalizarPublicacion, {
+        width: '480px',
+        disableClose: true
+      });
+      ref.afterClosed().subscribe((result: boolean) => {
+        if (result) {
+          this.actualizarEstado(nroPublicacion, estadoPublicacion);
+        }
+      });
+      return;
+    }
+    this.actualizarEstado(nroPublicacion, estadoPublicacion);
   }
 
   cerrarSesion(): void {
     this._sesion.cerrar();
     this._router.navigate(['/acceso']);
+  }
+
+  private actualizarEstado(nroPublicacion: number, estadoPublicacion: string): void {
+    this._api.actPublicacion({ nroPublicacion, estadoPublicacion }).subscribe(() => {
+      this.listado.update((publicaciones: IPublicacion[]) => publicaciones.map(p =>
+        p.nroPublicacion === nroPublicacion ? { ...p, estadoPublicacion } : p
+      ));
+    });
   }
 
 }

@@ -1,8 +1,10 @@
 package ar.edu.ubp.das.mascotasrest.repositories;
 
 import ar.edu.ubp.das.mascotasrest.BE.EspecieBE;
+import ar.edu.ubp.das.mascotasrest.BE.EstadoPublicacionBE;
 import ar.edu.ubp.das.mascotasrest.BE.PublicacionBE;
 import ar.edu.ubp.das.mascotasrest.BE.PublicacionDataBE;
+import ar.edu.ubp.das.mascotasrest.BE.UsuarioBE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,15 +31,15 @@ public class PublicacionesRepository {
         );
     }
 
-    public List<PublicacionBE> getPublicaciones(int idRefugio) {
+    public List<PublicacionBE> getPublicaciones(UsuarioBE usuario) {
         return jdbcTemplate.query(
             "exec dbo.get_publicaciones ?",
             new BeanPropertyRowMapper<>(PublicacionBE.class),
-            idRefugio
+            usuario.getIdRefugio()
         );
     }
 
-    public int insertarPublicacion(int idRefugio, PublicacionDataBE publicacion) {
+    public int insertarPublicacion(PublicacionDataBE publicacion) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
             .withProcedureName("ins_publicacion")
             .declareParameters(
@@ -45,7 +47,7 @@ public class PublicacionesRepository {
                 new SqlParameter("nombre", Types.VARCHAR),
                 new SqlParameter("cod_especie", Types.SMALLINT),
                 new SqlParameter("sexo", Types.VARCHAR),
-                new SqlParameter("edad", Types.SMALLINT),
+                new SqlParameter("anio_nacimiento", Types.SMALLINT),
                 new SqlParameter("raza", Types.VARCHAR),
                 new SqlParameter("caracteristicas_mascota", Types.VARCHAR),
                 new SqlParameter("condicion_adopcion", Types.VARCHAR),
@@ -55,11 +57,11 @@ public class PublicacionesRepository {
 
         Map<String, Object> params = new HashMap<>();
 
-        params.put("id_refugio", idRefugio);
+        params.put("id_refugio", publicacion.getIdRefugio());
         params.put("nombre", publicacion.getNombre());
         params.put("cod_especie", publicacion.getCodEspecie());
         params.put("sexo", publicacion.getSexo());
-        params.put("edad", publicacion.getEdad());
+        params.put("anio_nacimiento", publicacion.getAnioNacimiento());
         params.put("raza", publicacion.getRaza());
         params.put("caracteristicas_mascota", publicacion.getCaracteristicasMascota());
         params.put("condicion_adopcion", publicacion.getCondicionAdopcion());
@@ -70,12 +72,12 @@ public class PublicacionesRepository {
         return (int) result.get("nro_publicacion");
     }
 
-    public void actPublicacion(int idRefugio, int nroPublicacion, String estadoPublicacion) {
+    public void actPublicacion(EstadoPublicacionBE estado) {
         jdbcTemplate.update(
             "exec dbo.act_publicacion ?, ?, ?",
-            nroPublicacion,
-            idRefugio,
-            estadoPublicacion
+            estado.getNroPublicacion(),
+            estado.getIdRefugio(),
+            estado.getEstadoPublicacion()
         );
     }
 

@@ -2,7 +2,7 @@ export interface IPublicacionData {
   nombre: string;
   codEspecie: string;
   sexo: string;
-  edad: number | null;
+  anioNacimiento: number | null;
   raza: string;
   caracteristicasMascota: string;
   condicionAdopcion: string;

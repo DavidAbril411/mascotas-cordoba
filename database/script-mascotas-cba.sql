@@ -453,7 +453,7 @@ create or alter procedure dbo.ins_publicacion
  @nombre					varchar(100),
  @cod_especie				smallint,
  @sexo						varchar(1),
- @edad						smallint		= null,
+ @anio_nacimiento			smallint		= null,
  @raza						varchar(255)	= null,
  @caracteristicas_mascota	varchar(4000),
  @condicion_adopcion		varchar(4000),
@@ -473,7 +473,7 @@ begin
   insert into dbo.mascotas(nombre, sexo, año_nacimiento, microchip, vive, id_responsable, id_refugio)
   values(trim(@nombre),
          @sexo,
-         year(getdate()) - @edad,
+         @anio_nacimiento,
          null,
          1,
          null,
@@ -504,7 +504,7 @@ begin
 end
 go
 
--- declare @nro integer execute dbo.ins_publicacion @id_refugio=1, @nombre='Mora', @cod_especie=1, @sexo='H', @edad=2, @caracteristicas_mascota='Perrita cariñosa.', @condicion_adopcion='Entrevista previa.', @foto='data:image/jpeg;base64,...', @nro_publicacion=@nro output select @nro
+-- declare @nro integer execute dbo.ins_publicacion @id_refugio=1, @nombre='Mora', @cod_especie=1, @sexo='H', @anio_nacimiento=2024, @caracteristicas_mascota='Perrita cariñosa.', @condicion_adopcion='Entrevista previa.', @foto='data:image/jpeg;base64,...', @nro_publicacion=@nro output select @nro
 
 /* ------------------------------------------
    Procedimiento: act_publicacion

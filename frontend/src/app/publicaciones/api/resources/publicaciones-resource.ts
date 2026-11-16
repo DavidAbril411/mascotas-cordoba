@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { IEspecie } from '../models/i-especie';
 import { IPublicacion } from '../models/i-publicacion';
 import { IPublicacionData } from '../models/i-publicacion-data';
+import { IEstadoPublicacion } from '../models/i-estado-publicacion';
 
 @Service()
 export class PublicacionesResource {
@@ -24,8 +25,8 @@ export class PublicacionesResource {
     return this._http.post<number>(`${this._baseUrl}/publicacion`, publicacion);
   }
 
-  actPublicacion(nroPublicacion: number, estadoPublicacion: string): Observable<void> {
-    return this._http.post<void>(`${this._baseUrl}/publicacion/${nroPublicacion}/${estadoPublicacion}`, null);
+  actPublicacion(estado: IEstadoPublicacion): Observable<void> {
+    return this._http.post<void>(`${this._baseUrl}/publicacion/estado`, estado);
   }
 
 }

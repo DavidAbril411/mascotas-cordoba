@@ -41,11 +41,14 @@
         }
       </div>
       <div class="col-12 col-md-4 mb-3">
-        <label for="iedad" class="form-label">Edad aproximada</label>
-        <input type="number" id="iedad" [formField]="pubForm.edad" class="form-control" placeholder="Ej: 2 años" />
-        @if (pubForm.edad().touched() && pubForm.edad().invalid()) {
-        <small class="text-danger">{{ pubForm.edad().errors()[0]?.message }}</small>
-        }
+        <label for="ianio" class="form-label">Año de nacimiento</label>
+        <div class="input-group">
+          <input type="text" id="ianio" class="form-control" placeholder="Ej: 2024" readonly
+            [matDatepicker]="picker" [value]="fechaNacimiento()" [max]="hoy" (click)="picker.open()"
+            (dateChange)="setAnioNacimiento($event.value, picker)" />
+          <mat-datepicker-toggle [for]="picker" class="input-group-text p-0"></mat-datepicker-toggle>
+        </div>
+        <mat-datepicker #picker startView="multi-year" (yearSelected)="setAnioNacimiento($event, picker)"></mat-datepicker>
       </div>
       <div class="col-12 col-md-6 mb-3">
         <label for="iraza" class="form-label">Raza</label>

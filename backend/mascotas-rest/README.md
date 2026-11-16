@@ -26,7 +26,7 @@ Los contenedores se conectan al SQL Server de la PC mediante `host.docker.intern
 
 Todas las llamadas llevan el header `X-API-Key` (valor en `security.api-key` de `application.properties`, variable `API_KEY`).
 
-Las de `/publicaciones` llevan además `Authorization: Bearer <token>`, con el JWT que devuelve el login (`config/JwtFilter`). El token guarda el `idRefugio` del usuario, así cada refugio sólo ve y modifica sus publicaciones. Clave y duración en `security.jwt-secret` (`JWT_SECRET`) y `security.jwt-expiration` (`JWT_EXPIRATION`, en milisegundos; por defecto 8 horas). Sin token o con un token vencido responde 401 con el mensaje en el cuerpo.
+Las de `/publicaciones` llevan además `Authorization: Bearer <token>`, con el JWT que devuelve el login (`config/JwtFilter`). El token guarda el CUIL y el `idRefugio` del usuario; el filtro los deja en el request dentro de un `UsuarioBE` (atributo `usuario`) y cada método lo recibe con `@RequestAttribute UsuarioBE usuario`, así cada refugio sólo ve y modifica sus publicaciones. Clave y duración en `security.jwt-secret` (`JWT_SECRET`) y `security.jwt-expiration` (`JWT_EXPIRATION`, en milisegundos; por defecto 8 horas). Sin token o con un token vencido responde 401 con el mensaje en el cuerpo.
 
 | Método | URI | Body | Respuesta |
 |---|---|---|---|
@@ -35,7 +35,7 @@ Las de `/publicaciones` llevan además `Authorization: Bearer <token>`, con el J
 | GET | `/publicaciones/especies` | | 200 con `[{"codigo": 1, "nombre": "Perro"}, …]` |
 | GET | `/publicaciones/listado` | | 200 con las publicaciones del refugio del token |
 | POST | `/publicaciones/publicacion` | ver ejemplo | 200 con el `nroPublicacion` · 400 si faltan datos |
-| POST | `/publicaciones/publicacion/{nroPublicacion}/{estadoPublicacion}` | | 200 · 400 si el estado no es `A` (Activa), `P` (Pausada) o `F` (Finalizada). Una publicación finalizada no cambia más |
+| POST | `/publicaciones/publicacion/estado` | `{"nroPublicacion": 1, "estadoPublicacion": "P"}` | 200 · 400 si el estado no es `A` (Activa), `P` (Pausada) o `F` (Finalizada). Una publicación finalizada no cambia más |
 
 Ejemplo de alta de publicación (`foto` es la imagen en base64 como data URL):
 
@@ -44,7 +44,7 @@ Ejemplo de alta de publicación (`foto` es la imagen en base64 como data URL):
   "nombre": "Manchita",
   "codEspecie": 1,
   "sexo": "H",
-  "edad": 2,
+  "anioNacimiento": 2024,
   "raza": "Mestizo",
   "caracteristicasMascota": "Es muy cariñosa y tranquila.",
   "condicionAdopcion": "Se requiere entrevista previa.",
@@ -52,7 +52,7 @@ Ejemplo de alta de publicación (`foto` es la imagen en base64 como data URL):
 }
 ```
 
-Cada alta crea la mascota (`mascotas`, con el refugio y el año de nacimiento calculado a partir de la edad), su especie y raza (`caracteristicas_mascotas`) y la publicación (`publicaciones_adopcion`, estado `A`) en un solo procedimiento, `dbo.ins_publicacion`.
+Cada alta crea la mascota (`mascotas`, con el refugio y el año de nacimiento; el listado devuelve la edad calculada), su especie y raza (`caracteristicas_mascotas`) y la publicación (`publicaciones_adopcion`, estado `A`) en un solo procedimiento, `dbo.ins_publicacion`.
 
 Ejemplo de registro:
 
@@ -90,7 +90,7 @@ Respuesta del login:
 }
 ```
 
-El login valida las credenciales con `dbo.get_usuario_refugio` y firma el JWT en `config/JwtUtil` (librería `jjwt`). El frontend Angular guarda este usuario en el `localStorage` del navegador (`SesionService`) para mantener la sesión aunque se recargue la página, y su interceptor manda el token en cada llamada.
+El login valida las credenciales con `dbo.get_usuario_refugio` y firma el JWT en `config/JwtUtil` (librería `jjwt`). El frontend Angular guarda este usuario en el `sessionStorage` del navegador (`SesionService`): la sesión se mantiene aunque se recargue la página y se pierde al cerrar la pestaña, y su interceptor manda el token en cada llamada.
 
 ## CORS
 
