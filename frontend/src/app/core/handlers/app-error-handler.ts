@@ -1,17 +1,32 @@
 import { ErrorHandler, Injectable, NgZone, inject, isDevMode } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { AppMessageService, IMessage } from '../services/app-message-service';
+import { SesionService } from '../services/sesion-service';
 
 @Injectable()
 export class AppErrorHandler implements ErrorHandler {
 
   private readonly _service = inject(AppMessageService);
   private readonly _zone = inject(NgZone);
+  private readonly _sesion = inject(SesionService);
+  private readonly _router = inject(Router);
+  private readonly _dialog = inject(MatDialog);
 
   handleError(error: unknown): void {
     error = this.unwrapError(error);
     if (isDevMode()) {
       console.error('[ErrorHandler]', error);
+    }
+
+    if (error instanceof HttpErrorResponse && error.status === 401 && this._sesion.usuario()) {
+      this._zone.run(() => {
+        this._dialog.closeAll();
+        this._sesion.cerrar();
+        this._router.navigate(['/acceso']);
+      });
+      return;
     }
 
     const message = this.getMessage(error);

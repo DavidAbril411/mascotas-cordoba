@@ -1,24 +1,40 @@
-import { Component, Injector, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, Injector, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { FieldTree, form, FormField, FormRoot, maxLength, min, required } from '@angular/forms/signals';
+import { MAT_DATE_FORMATS } from '@angular/material/core';
+import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
+import { FieldTree, form, FormField, FormRoot, maxLength, required } from '@angular/forms/signals';
 import { IEspecie } from '../../api/models/i-especie';
 import { IPublicacionData } from '../../api/models/i-publicacion-data';
 import { AutofocusDirective } from '../../../shared/directives/autofocus';
 import { PublicacionesResource } from '../../api/resources/publicaciones-resource';
+
+const FORMATO_ANIO = {
+  parse: {
+    dateInput: null
+  },
+  display: {
+    dateInput: { year: 'numeric' },
+    monthYearLabel: { year: 'numeric', month: 'short' },
+    dateA11yLabel: { year: 'numeric', month: 'long', day: 'numeric' },
+    monthYearA11yLabel: { year: 'numeric', month: 'long' }
+  }
+};
 
 @Component({
   imports: [
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatDatepickerModule,
     FormField,
     FormRoot,
     AutofocusDirective
   ],
   providers: [
-    PublicacionesResource
+    PublicacionesResource,
+    { provide: MAT_DATE_FORMATS, useValue: FORMATO_ANIO }
   ],
   selector: 'app-modal-publicacion',
   styleUrl: './modal-publicacion.scss',
@@ -30,6 +46,13 @@ export class ModalPublicacion implements OnInit {
   publicacion!: WritableSignal<IPublicacionData>;
 
   pubForm!: FieldTree<IPublicacionData>;
+
+  readonly hoy = new Date();
+
+  fechaNacimiento = computed(() => {
+    const anio = this.publicacion().anioNacimiento;
+    return anio ? new Date(anio, 0, 1) : null;
+  });
 
   constructor(
     private _dialogRef: MatDialogRef<ModalPublicacion, boolean>,
@@ -65,6 +88,14 @@ export class ModalPublicacion implements OnInit {
     reader.readAsDataURL(archivo);
   }
 
+  setAnioNacimiento(fecha: Date | null, picker: MatDatepicker<Date>): void {
+    this.publicacion.update(publicacion => ({
+      ...publicacion,
+      anioNacimiento: fecha ? fecha.getFullYear() : null
+    }));
+    picker.close();
+  }
+
   save(): void {
     if (this.pubForm().valid()) {
       this._api.insertarPublicacion(this.publicacion()).subscribe(() => {
@@ -84,8 +115,6 @@ export class ModalPublicacion implements OnInit {
 
       required(schemaPath.codEspecie, { message: 'Debe seleccionar la especie.' });
       required(schemaPath.sexo, { message: 'Debe seleccionar el sexo.' });
-
-      min(schemaPath.edad, 0, { message: 'La edad no puede ser negativa.' });
 
       maxLength(schemaPath.raza, 255);
 
@@ -114,7 +143,7 @@ export class ModalPublicacion implements OnInit {
       nombre: '',
       codEspecie: '',
       sexo: '',
-      edad: null,
+      anioNacimiento: null,
       raza: '',
       caracteristicasMascota: '',
       condicionAdopcion: '',
