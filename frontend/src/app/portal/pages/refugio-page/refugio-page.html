@@ -1,0 +1,73 @@
+<app-navbar></app-navbar>
+
+<div class="container py-4">
+  <div class="card border-0 rounded-4 shadow-sm mb-4">
+    <div class="card-body p-4 d-md-flex justify-content-between align-items-center">
+      <div>
+        <span class="badge bg-success">Mascotas en adopción</span>
+        <h1 class="fw-bold mt-2 mb-2">{{ info().razonSocial | titlecase }}</h1>
+        <p class="text-body-secondary mb-0">
+          @if (info().domicilio) {
+          <span class="me-3"><i class="bi bi-geo-alt me-1"></i>{{ info().domicilio | titlecase }}</span>
+          }
+          @if (info().telefono) {
+          <span class="me-3"><i class="bi bi-telephone me-1"></i>{{ info().telefono }}</span>
+          }
+          <span class="me-3"><i class="bi bi-envelope me-1"></i><a class="link-success"
+              [attr.href]="'mailto:' + info().correo">{{ info().correo }}</a></span>
+        </p>
+        @if (info().horarios) {
+        <p class="text-body-secondary mt-1 mb-0"><i class="bi bi-clock me-1"></i>{{ info().horarios }}</p>
+        }
+      </div>
+      <button type="button" class="btn btn-outline-success btn-lg mt-3 mt-md-0" (click)="back()">
+        <i class="bi bi-arrow-left me-2"></i>Volver
+      </button>
+    </div>
+  </div>
+
+  @if (publicaciones().length > 0) {
+    <div class="row g-4">
+      @for (publicacion of publicaciones(); track publicacion.nroPublicacion) {
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="card border-0 rounded-4 shadow-sm h-100 overflow-hidden">
+          <img [src]="publicacion.foto" class="foto card-img-top" [alt]="publicacion.nombre" />
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between">
+              <div>
+                <h4 class="fw-bold mb-1">{{ publicacion.nombre }}</h4>
+                <p class="text-body-secondary mb-0">NRM: {{ publicacion.nrm }}</p>
+              </div>
+              <span class="badge bg-light text-dark border">{{ publicacion.nomEspecie }}</span>
+            </div>
+            <hr />
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="dato rounded-3">
+                @if (publicacion.sexo === 'H') {
+                <i class="bi bi-gender-female me-1"></i>Hembra
+                }
+                @else {
+                <i class="bi bi-gender-male me-1"></i>Macho
+                }
+              </span>
+              @if (publicacion.edad) {
+              <span class="dato rounded-3"><i class="bi bi-calendar3 me-1"></i>{{ publicacion.edad }}</span>
+              }
+              @if (publicacion.raza) {
+              <span class="dato rounded-3"><i class="bi bi-tag me-1"></i>{{ publicacion.raza }}</span>
+              }
+            </div>
+            <p class="small text-body-secondary mb-2">{{ publicacion.caracteristicasMascota }}</p>
+            @if (publicacion.condicionAdopcion) {
+            <p class="small text-body-secondary mb-2"><i class="bi bi-clipboard-check me-1"></i>{{ publicacion.condicionAdopcion }}</p>
+            }
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  }
+  @else {
+    <div class="alert alert-info">El refugio no tiene mascotas en adopción en este momento.</div>
+  }
+</div>

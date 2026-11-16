@@ -1,0 +1,77 @@
+<app-navbar></app-navbar>
+
+<div class="container py-4">
+  <div class="card border-0 rounded-4 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <span class="badge bg-success">Veterinarias adheridas</span>
+      <h1 class="fw-bold mt-2 mb-2">Veterinarias del programa</h1>
+      <p class="text-body-secondary mb-0">Consultá las veterinarias habilitadas, sus horarios y los servicios que prestan dentro del programa.</p>
+    </div>
+  </div>
+
+  @if (listado().length > 0) {
+    @if ((listado() | filtrarPor:['razonSocial', 'domicilio']:filtroNombre() | filtrarPor:'servicios':filtroServicio()); as veterinariasFiltradas) {
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-5">
+              <label for="ibuscar" class="form-label">Buscar veterinaria</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" id="ibuscar" [formField]="filtroNombreForm" class="form-control"
+                  placeholder="Nombre o domicilio..." />
+              </div>
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="iservicio" class="form-label">Servicio</label>
+              <select id="iservicio" [formField]="filtroServicioForm" class="form-select">
+                <option value="">Todos</option>
+                @for (s of servicios(); track s.codigo) {
+                <option [value]="s.nombre">{{ s.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-12 col-md-4 text-md-end">
+              <span class="text-body-secondary">Veterinarias: <b class="text-body">{{ veterinariasFiltradas.length }}</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (veterinariasFiltradas.length > 0) {
+        <div class="row g-4">
+          @for (veterinaria of veterinariasFiltradas; track veterinaria.idVeterinaria) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 rounded-4 shadow-sm h-100">
+              <div class="card-body">
+                <h4 class="fw-bold mb-1">{{ veterinaria.razonSocial | titlecase }}</h4>
+                @if (veterinaria.domicilio) {
+                <p class="text-body-secondary mb-0"><i class="bi bi-geo-alt me-1"></i>{{ veterinaria.domicilio | titlecase }}</p>
+                }
+                <hr />
+                @if (veterinaria.telefono) {
+                <p class="small text-body-secondary mb-2"><i class="bi bi-telephone me-1"></i>{{ veterinaria.telefono }}</p>
+                }
+                <p class="small mb-2"><i class="bi bi-envelope me-1"></i><a class="link-success"
+                    [attr.href]="'mailto:' + veterinaria.correo">{{ veterinaria.correo }}</a></p>
+                @if (veterinaria.horarios) {
+                <p class="small text-body-secondary mb-2"><i class="bi bi-clock me-1"></i>{{ veterinaria.horarios }}</p>
+                }
+                @if (veterinaria.servicios) {
+                <p class="small text-body-secondary mb-0"><i class="bi bi-clipboard-check me-1"></i>{{ veterinaria.servicios }}</p>
+                }
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+      }
+      @else {
+        <div class="alert alert-warning">No se encontraron veterinarias para los filtros seleccionados.</div>
+      }
+    }
+  }
+  @else {
+    <div class="alert alert-info">Todavía no hay veterinarias adheridas al programa.</div>
+  }
+</div>

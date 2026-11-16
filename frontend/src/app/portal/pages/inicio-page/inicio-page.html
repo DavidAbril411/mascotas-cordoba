@@ -1,0 +1,61 @@
+<app-navbar></app-navbar>
+
+<div class="container py-4">
+  <div class="card border-0 rounded-4 shadow-sm mb-4">
+    <div class="card-body p-4">
+      <span class="badge bg-success">Programa Municipal de Bienestar Animal</span>
+      <h1 class="fw-bold mt-2 mb-2">Bienvenidos a Mascotas Córdoba</h1>
+      <p class="text-body-secondary mb-0">El portal de la Municipalidad de Córdoba para el cuidado responsable de
+        las mascotas: consultá las veterinarias adheridas al programa y conocé a las mascotas que esperan una familia
+        en los refugios de la ciudad.</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-md-4">
+      <div class="card border-0 rounded-4 shadow-sm h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <span class="icono d-flex align-items-center justify-content-center rounded-circle bg-success text-white mb-3">
+            <i class="bi bi-hospital"></i>
+          </span>
+          <h4 class="fw-bold mb-2">Veterinarias adheridas</h4>
+          <p class="text-body-secondary">Buscá una veterinaria del programa y consultá su ubicación, sus horarios de
+            atención y los servicios que presta.</p>
+          <div class="mt-auto">
+            <button type="button" class="btn btn-success" routerLink="/veterinarias">Ver veterinarias</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card border-0 rounded-4 shadow-sm h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <span class="icono d-flex align-items-center justify-content-center rounded-circle bg-success text-white mb-3">
+            <i class="bi bi-heart"></i>
+          </span>
+          <h4 class="fw-bold mb-2">Refugios y adopción</h4>
+          <p class="text-body-secondary">Conocé los refugios adheridos y las mascotas que tienen disponibles para
+            adopción.</p>
+          <div class="mt-auto">
+            <button type="button" class="btn btn-success" routerLink="/refugios">Ver refugios</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card border-0 rounded-4 shadow-sm h-100">
+        <div class="card-body d-flex flex-column p-4">
+          <span class="icono d-flex align-items-center justify-content-center rounded-circle bg-success text-white mb-3">
+            <i class="bi bi-house"></i>
+          </span>
+          <h4 class="fw-bold mb-2">Soy un refugio</h4>
+          <p class="text-body-secondary">Ingresá con el CUIL del responsable para administrar las publicaciones de
+            adopción de tu refugio.</p>
+          <div class="mt-auto">
+            <button type="button" class="btn btn-outline-success" routerLink="/publicaciones">Gestionar publicaciones</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

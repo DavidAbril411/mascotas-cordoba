@@ -1,20 +1,18 @@
 import { Component, inject, model, signal } from '@angular/core';
-import { SlicePipe } from '@angular/common';
-import { Router } from '@angular/router';
 import { form, FormField } from '@angular/forms/signals';
 import { MatDialog } from '@angular/material/dialog';
 import { PublicacionesResource } from '../../api/resources/publicaciones-resource';
 import { IPublicacion } from '../../api/models/i-publicacion';
 import { ModalPublicacion } from '../../components/modal-publicacion/modal-publicacion';
 import { ModalFinalizarPublicacion } from '../../components/modal-finalizar-publicacion/modal-finalizar-publicacion';
-import { SesionService } from '../../../core/services/sesion-service';
+import { Navbar } from '../../../core/layouts/navbar/navbar';
 import { FiltrarPorPipe } from '../../../shared/pipes/filtrar-por-pipe';
 
 @Component({
   imports: [
-    SlicePipe,
     FiltrarPorPipe,
-    FormField
+    FormField,
+    Navbar
   ],
   selector: 'app-list-page',
   styleUrl: './list-page.scss',
@@ -23,11 +21,7 @@ import { FiltrarPorPipe } from '../../../shared/pipes/filtrar-por-pipe';
 export class ListPage {
 
   private _api = inject(PublicacionesResource);
-  private _sesion = inject(SesionService);
-  private _router = inject(Router);
   private _dialog = inject(MatDialog);
-
-  readonly usuario = this._sesion.usuario;
 
   listado = model<IPublicacion[]>([]);
 
@@ -68,11 +62,6 @@ export class ListPage {
       return;
     }
     this.actualizarEstado(nroPublicacion, estadoPublicacion);
-  }
-
-  cerrarSesion(): void {
-    this._sesion.cerrar();
-    this._router.navigate(['/acceso']);
   }
 
   private actualizarEstado(nroPublicacion: number, estadoPublicacion: string): void {
