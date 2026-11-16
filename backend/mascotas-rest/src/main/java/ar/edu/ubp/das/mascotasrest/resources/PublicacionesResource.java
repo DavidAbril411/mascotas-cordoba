@@ -1,12 +1,15 @@
 package ar.edu.ubp.das.mascotasrest.resources;
 
 import ar.edu.ubp.das.mascotasrest.BE.EspecieBE;
+import ar.edu.ubp.das.mascotasrest.BE.EstadoPublicacionBE;
 import ar.edu.ubp.das.mascotasrest.BE.PublicacionBE;
 import ar.edu.ubp.das.mascotasrest.BE.PublicacionDataBE;
+import ar.edu.ubp.das.mascotasrest.BE.UsuarioBE;
 import ar.edu.ubp.das.mascotasrest.repositories.PublicacionesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,12 +27,13 @@ public class PublicacionesResource {
     }
 
     @GetMapping("/listado")
-    public ResponseEntity<List<PublicacionBE>> getPublicaciones(@RequestAttribute int idRefugio) {
-        return ResponseEntity.ok(repository.getPublicaciones(idRefugio));
+    public ResponseEntity<List<PublicacionBE>> getPublicaciones(@RequestAttribute UsuarioBE usuario) {
+        return ResponseEntity.ok(repository.getPublicaciones(usuario));
     }
 
     @PostMapping("/publicacion")
-    public ResponseEntity insertarPublicacion(@RequestAttribute int idRefugio, @RequestBody PublicacionDataBE publicacion) {
+    @Transactional
+    public ResponseEntity insertarPublicacion(@RequestAttribute UsuarioBE usuario, @RequestBody PublicacionDataBE publicacion) {
         if (vacio(publicacion.getNombre()) ||
             publicacion.getCodEspecie() <= 0 ||
             vacio(publicacion.getSexo()) ||
@@ -39,18 +43,24 @@ public class PublicacionesResource {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Faltan datos obligatorios de la publicación.");
         }
 
-        return ResponseEntity.ok(repository.insertarPublicacion(idRefugio, publicacion));
+        publicacion.setIdRefugio(usuario.getIdRefugio());
+
+        return ResponseEntity.ok(repository.insertarPublicacion(publicacion));
     }
 
-    @PostMapping("/publicacion/{nroPublicacion}/{estadoPublicacion}")
-    public ResponseEntity actPublicacion(@RequestAttribute int idRefugio, @PathVariable int nroPublicacion, @PathVariable String estadoPublicacion) {
-        if (!estadoPublicacion.equals("A") &&
-            !estadoPublicacion.equals("P") &&
-            !estadoPublicacion.equals("F")) {
+    @PostMapping("/publicacion/estado")
+    @Transactional
+    public ResponseEntity actPublicacion(@RequestAttribute UsuarioBE usuario, @RequestBody EstadoPublicacionBE estado) {
+        if (vacio(estado.getEstadoPublicacion()) ||
+            (!estado.getEstadoPublicacion().equals("A") &&
+             !estado.getEstadoPublicacion().equals("P") &&
+             !estado.getEstadoPublicacion().equals("F"))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El estado de la publicación no es válido.");
         }
 
-        repository.actPublicacion(idRefugio, nroPublicacion, estadoPublicacion);
+        estado.setIdRefugio(usuario.getIdRefugio());
+
+        repository.actPublicacion(estado);
         return ResponseEntity.ok().build();
     }
 

@@ -2,14 +2,23 @@ package ar.edu.ubp.das.mascotasrest.BE;
 
 public class PublicacionDataBE {
 
+    private int idRefugio;
     private String nombre;
     private int codEspecie;
     private String sexo;
-    private Integer edad;
+    private Integer anioNacimiento;
     private String raza;
     private String caracteristicasMascota;
     private String condicionAdopcion;
     private String foto;
+
+    public int getIdRefugio() {
+        return idRefugio;
+    }
+
+    public void setIdRefugio(int idRefugio) {
+        this.idRefugio = idRefugio;
+    }
 
     public String getNombre() {
         return nombre;
@@ -35,12 +44,12 @@ public class PublicacionDataBE {
         this.sexo = sexo;
     }
 
-    public Integer getEdad() {
-        return edad;
+    public Integer getAnioNacimiento() {
+        return anioNacimiento;
     }
 
-    public void setEdad(Integer edad) {
-        this.edad = edad;
+    public void setAnioNacimiento(Integer anioNacimiento) {
+        this.anioNacimiento = anioNacimiento;
     }
 
     public String getRaza() {

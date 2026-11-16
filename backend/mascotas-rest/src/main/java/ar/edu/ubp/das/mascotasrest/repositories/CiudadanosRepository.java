@@ -1,6 +1,7 @@
 package ar.edu.ubp.das.mascotasrest.repositories;
 
 import ar.edu.ubp.das.mascotasrest.BE.CiudadanoBE;
+import ar.edu.ubp.das.mascotasrest.BE.CiudadanoDataBE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,11 +15,11 @@ public class CiudadanosRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public List<CiudadanoBE> getCiudadano(String cuil) {
+    public List<CiudadanoBE> getCiudadano(CiudadanoDataBE ciudadano) {
         return jdbcTemplate.query(
             "exec dbo.get_ciudadano ?",
             new BeanPropertyRowMapper<>(CiudadanoBE.class),
-            cuil
+            ciudadano.getCuil()
         );
     }
 

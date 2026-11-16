@@ -1,5 +1,6 @@
 package ar.edu.ubp.das.mascotasrest.config;
 
+import ar.edu.ubp.das.mascotasrest.BE.UsuarioBE;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -37,7 +38,10 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         try {
             Claims claims = jwtUtil.leerToken(authorization.substring(7));
-            request.setAttribute("idRefugio", claims.get("idRefugio", Integer.class));
+            UsuarioBE usuario = new UsuarioBE();
+            usuario.setCuil(claims.getSubject());
+            usuario.setIdRefugio(claims.get("idRefugio", Integer.class));
+            request.setAttribute("usuario", usuario);
         }
         catch (JwtException e) {
             rechazar(response);
