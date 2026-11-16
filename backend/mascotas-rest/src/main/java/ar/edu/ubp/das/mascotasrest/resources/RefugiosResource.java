@@ -1,6 +1,8 @@
 package ar.edu.ubp.das.mascotasrest.resources;
 
 import ar.edu.ubp.das.mascotasrest.BE.CiudadanoDataBE;
+import ar.edu.ubp.das.mascotasrest.BE.PublicacionBE;
+import ar.edu.ubp.das.mascotasrest.BE.RefugioBE;
 import ar.edu.ubp.das.mascotasrest.BE.RefugioDataBE;
 import ar.edu.ubp.das.mascotasrest.repositories.CiudadanosRepository;
 import ar.edu.ubp.das.mascotasrest.repositories.RefugiosRepository;
@@ -9,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/refugios")
@@ -19,6 +23,32 @@ public class RefugiosResource {
 
     @Autowired
     private CiudadanosRepository ciudadanosRepository;
+
+    @GetMapping("/listado")
+    public ResponseEntity<List<RefugioBE>> getRefugios() {
+        return ResponseEntity.ok(repository.getRefugios());
+    }
+
+    @GetMapping("/{idRefugio}")
+    public ResponseEntity getRefugio(@PathVariable int idRefugio) {
+        RefugioBE refugio = new RefugioBE();
+        refugio.setIdRefugio(idRefugio);
+
+        List<RefugioBE> refugios = repository.getRefugio(refugio);
+        if (refugios.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El refugio no existe o no está habilitado.");
+        }
+
+        return ResponseEntity.ok(refugios.get(0));
+    }
+
+    @GetMapping("/{idRefugio}/publicaciones")
+    public ResponseEntity<List<PublicacionBE>> getPublicacionesActivas(@PathVariable int idRefugio) {
+        RefugioBE refugio = new RefugioBE();
+        refugio.setIdRefugio(idRefugio);
+
+        return ResponseEntity.ok(repository.getPublicacionesActivas(refugio));
+    }
 
     @PostMapping
     @Transactional

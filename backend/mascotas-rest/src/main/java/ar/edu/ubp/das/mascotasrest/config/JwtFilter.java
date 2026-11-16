@@ -22,7 +22,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.equals("/sesiones") || path.equals("/refugios");
+        return path.equals("/sesiones") || path.startsWith("/refugios") || path.startsWith("/veterinarias");
     }
 
     @Override

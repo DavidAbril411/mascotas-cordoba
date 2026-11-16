@@ -1,7 +1,10 @@
 package ar.edu.ubp.das.mascotasrest.repositories;
 
+import ar.edu.ubp.das.mascotasrest.BE.PublicacionBE;
+import ar.edu.ubp.das.mascotasrest.BE.RefugioBE;
 import ar.edu.ubp.das.mascotasrest.BE.RefugioDataBE;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -17,6 +21,29 @@ public class RefugiosRepository {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    public List<RefugioBE> getRefugios() {
+        return jdbcTemplate.query(
+            "exec dbo.get_refugios",
+            new BeanPropertyRowMapper<>(RefugioBE.class)
+        );
+    }
+
+    public List<RefugioBE> getRefugio(RefugioBE refugio) {
+        return jdbcTemplate.query(
+            "exec dbo.get_refugios ?",
+            new BeanPropertyRowMapper<>(RefugioBE.class),
+            refugio.getIdRefugio()
+        );
+    }
+
+    public List<PublicacionBE> getPublicacionesActivas(RefugioBE refugio) {
+        return jdbcTemplate.query(
+            "exec dbo.get_publicaciones_activas ?",
+            new BeanPropertyRowMapper<>(PublicacionBE.class),
+            refugio.getIdRefugio()
+        );
+    }
 
     public int insertarRefugio(RefugioDataBE refugio) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
