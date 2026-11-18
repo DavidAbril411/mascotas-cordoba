@@ -3,6 +3,7 @@ go
 
 drop procedure if exists dbo.ins_sesion
 drop table if exists dbo.sesiones
+drop table if exists dbo.horarios_refugios
 drop table if exists dbo.publicaciones_adopcion
 drop table if exists dbo.caracteristicas_mascotas
 drop table if exists dbo.dominio_rasgos_mascotas
@@ -35,7 +36,10 @@ insert into dbo.atributos_sistema(cod_atributo, desc_atributo, tipo_dato, observ
 values('URL', 'URL del servicio', 'varchar', null),
       ('TECNOLOGIA', 'Tecnología servicio', 'varchar', 'REST / SOAP'),
       ('PARAMETROS', 'Parametros servicio', 'varchar', null),
-      ('API_KEY', 'Api Key', 'varchar', null)
+      ('API_KEY', 'Api Key', 'varchar', null),
+      ('ESTADO', 'Estado de la veterinaria', 'varchar', 'A: Activa / I: Inactiva'),
+      ('HORARIOS', 'Horarios de atención', 'varchar', null),
+      ('SERVICIOS', 'Servicios que presta', 'varchar', 'Códigos de tipos_atencion_sanitaria separados por coma')
 go
 
 /* ------------------------------------------
@@ -259,6 +263,25 @@ create table dbo.publicaciones_adopcion
  condicion_adopcion		varchar(4000)	null,
  foto					varchar(max)	null,
  estado_publicacion		varchar(1)		not null	-- A: Activa, P: Pausada, F: Finalizada
+)
+go
+
+/* ------------------------------------------
+   Tabla: horarios_refugios
+   (agregada al modelo lógico: horarios de atención de cada refugio, RF18)
+   ------------------------------------------ */
+create table dbo.horarios_refugios
+(
+ id_refugio				integer			not null
+						constraint FK__horarios_refugios__refugios__END references dbo.refugios
+						on delete cascade
+						on update cascade,
+ nro_horario			smallint		not null,
+ dias					varchar(50)		not null,
+ hora_desde				time			not null,
+ hora_hasta				time			not null,
+ constraint PK__horarios_refugios__END
+			primary key (id_refugio, nro_horario)
 )
 go
 
@@ -534,6 +557,144 @@ go
 -- execute dbo.act_publicacion @nro_publicacion=1, @id_refugio=1, @estado_publicacion='P'
 
 /* ------------------------------------------
+   Procedimiento: get_veterinarias
+   ------------------------------------------ */
+create or alter procedure dbo.get_veterinarias
+as
+begin
+
+  select idVeterinaria = v.id_veterinaria,
+         razonSocial   = v.razon_social,
+         domicilio     = v.domicilio,
+         telefono      = v.telefono,
+         correo        = v.correo,
+         horarios      = h.valor,
+         servicios     = (select string_agg(t.desc_tipo_atencion, ', ') within group (order by t.desc_tipo_atencion)
+                            from string_split(s.valor, ',') c
+                                 join dbo.tipos_atencion_sanitaria t (nolock)
+                                   on trim(c.value) = t.cod_tipo_atencion)
+    from dbo.veterinarias v (nolock)
+         join dbo.configuracion_veterinatarias e (nolock)
+           on v.id_veterinaria = e.id_veterinaria
+          and e.cod_atributo   = 'ESTADO'
+          and e.valor          = 'A'
+         left join dbo.configuracion_veterinatarias h (nolock)
+           on v.id_veterinaria = h.id_veterinaria
+          and h.cod_atributo   = 'HORARIOS'
+         left join dbo.configuracion_veterinatarias s (nolock)
+           on v.id_veterinaria = s.id_veterinaria
+          and s.cod_atributo   = 'SERVICIOS'
+   order by v.razon_social
+
+end
+go
+
+-- execute dbo.get_veterinarias
+
+/* ------------------------------------------
+   Procedimiento: get_tipos_atencion
+   ------------------------------------------ */
+create or alter procedure dbo.get_tipos_atencion
+as
+begin
+
+  select codigo = cod_tipo_atencion,
+         nombre = desc_tipo_atencion
+    from dbo.tipos_atencion_sanitaria (nolock)
+   order by desc_tipo_atencion
+
+end
+go
+
+-- execute dbo.get_tipos_atencion
+
+/* ------------------------------------------
+   Procedimiento: get_refugios
+   ------------------------------------------ */
+create or alter procedure dbo.get_refugios
+(
+ @id_refugio		integer		= null
+)
+as
+begin
+
+  select idRefugio         = r.id_refugio,
+         razonSocial       = r.razon_social,
+         domicilio         = r.domicilio,
+         telefono          = r.telefono,
+         correo            = r.correo,
+         horarios          = (select string_agg(h.dias + ' de ' + convert(varchar(5), h.hora_desde, 108) + ' a ' + convert(varchar(5), h.hora_hasta, 108), ' · ') within group (order by h.nro_horario)
+                                from dbo.horarios_refugios h (nolock)
+                               where h.id_refugio = r.id_refugio),
+         cantPublicaciones = (select count(*)
+                                from dbo.publicaciones_adopcion p (nolock)
+                               where p.id_refugio         = r.id_refugio
+                                 and p.estado_publicacion = 'A')
+    from dbo.refugios r (nolock)
+         join dbo.ciudadanos c (nolock)
+           on r.id_responsable = c.id_ciudadano
+   where c.habilitado = 1
+     and (r.id_refugio = @id_refugio or @id_refugio is null)
+   order by r.razon_social
+
+end
+go
+
+-- execute dbo.get_refugios
+-- execute dbo.get_refugios @id_refugio=1
+
+/* ------------------------------------------
+   Procedimiento: get_publicaciones_activas
+   ------------------------------------------ */
+create or alter procedure dbo.get_publicaciones_activas
+(
+ @id_refugio		integer
+)
+as
+begin
+
+  select nroPublicacion         = p.nro_publicacion,
+         nrm                    = 'MUN-' + right('000000' + convert(varchar(10), m.nro_reg_municipal), 6),
+         nombre                 = m.nombre,
+         nomEspecie             = iif(m.sexo = 'H', left(d.nom_valor_dominio, len(d.nom_valor_dominio) - 1) + 'a', d.nom_valor_dominio),
+         sexo                   = m.sexo,
+         edad                   = case
+                                    when m.año_nacimiento is null then null
+                                    when year(getdate()) - m.año_nacimiento = 1 then '1 año'
+                                    else convert(varchar(5), year(getdate()) - m.año_nacimiento) + ' años'
+                                  end,
+         raza                   = r.valor_caracteristica,
+         caracteristicasMascota = p.caracteristicas_mascota,
+         condicionAdopcion      = p.condicion_adopcion,
+         foto                   = p.foto,
+         estadoPublicacion      = p.estado_publicacion
+    from dbo.publicaciones_adopcion p (nolock)
+         join dbo.refugios f (nolock)
+           on p.id_refugio = f.id_refugio
+         join dbo.ciudadanos c (nolock)
+           on f.id_responsable = c.id_ciudadano
+          and c.habilitado     = 1
+         join dbo.mascotas m (nolock)
+           on p.nro_reg_municipal = m.nro_reg_municipal
+         left join dbo.caracteristicas_mascotas e (nolock)
+           on m.nro_reg_municipal = e.nro_reg_municipal
+          and e.cod_rasgo         = 'ESP'
+         left join dbo.dominio_rasgos_mascotas d (nolock)
+           on e.cod_rasgo         = d.cod_rasgo
+          and e.nro_valor_dominio = d.nro_valor_dominio
+         left join dbo.caracteristicas_mascotas r (nolock)
+           on m.nro_reg_municipal = r.nro_reg_municipal
+          and r.cod_rasgo         = 'RAZ'
+   where p.id_refugio         = @id_refugio
+     and p.estado_publicacion = 'A'
+   order by p.nro_publicacion
+
+end
+go
+
+-- execute dbo.get_publicaciones_activas @id_refugio=1
+
+/* ------------------------------------------
    Datos iniciales: usuario de refugio
    ------------------------------------------ */
 insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
@@ -542,4 +703,50 @@ go
 
 insert into dbo.refugios(razon_social, correo, telefono, domicilio, habilitacion_municipal, id_responsable)
 values('REFUGIO HUELLITAS', 'huellitas@refugio.org', '3515554321', 'CAMINO A SAN CARLOS KM 5', 'HM-0001', 1)
+go
+
+/* ------------------------------------------
+   Datos iniciales: segundo refugio y horarios de atención
+   ------------------------------------------ */
+insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
+values('GOMEZ', 'MARIA', '27301234567', '123456', 'maria.gomez@ubp.edu.ar', '3515559876', 'BV. SAN JUAN 1250', 1)
+go
+
+insert into dbo.refugios(razon_social, correo, telefono, domicilio, habilitacion_municipal, id_responsable)
+values('REFUGIO COLITAS FELICES', 'colitas@refugio.org', '3515558765', 'AV. RAFAEL NUÑEZ 4200', 'HM-0005', 2)
+go
+
+insert into dbo.horarios_refugios(id_refugio, nro_horario, dias, hora_desde, hora_hasta)
+values(1, 1, 'Lunes a viernes', '09:00', '17:00'),
+      (1, 2, 'Sábados', '10:00', '13:00'),
+      (2, 1, 'Martes a domingos', '14:00', '19:00')
+go
+
+/* ------------------------------------------
+   Datos iniciales: veterinarias adheridas
+   ------------------------------------------ */
+insert into dbo.veterinarias(razon_social, correo, telefono, domicilio, habilitacion_municipal)
+values('VETERINARIA SAN ROQUE', 'contacto@vetsanroque.com.ar', '3514221100', 'AV. COLON 1540', 'HV-0001'),
+      ('CLINICA VETERINARIA DEL PARQUE', 'turnos@vetdelparque.com.ar', '3514685500', 'AV. HIPOLITO YRIGOYEN 480', 'HV-0002'),
+      ('VETERINARIA HUELLAS', 'info@vethuellas.com.ar', '3514773200', 'AV. RECTA MARTINOLLI 7150', 'HV-0003'),
+      ('CENTRO VETERINARIO ALBERDI', 'consultas@vetalberdi.com.ar', '3514809900', 'AV. DUARTE QUIROS 2100', 'HV-0004'),
+      ('VETERINARIA LOS ALAMOS', 'info@vetlosalamos.com.ar', '3514551800', 'AV. SABATTINI 3300', 'HV-0005')
+go
+
+insert into dbo.configuracion_veterinatarias(id_veterinaria, cod_atributo, valor)
+values(1, 'ESTADO', 'A'),
+      (1, 'HORARIOS', 'Lunes a viernes de 09:00 a 19:00 · Sábados de 09:00 a 13:00'),
+      (1, 'SERVICIOS', 'VAC,DES,CAS'),
+      (2, 'ESTADO', 'A'),
+      (2, 'HORARIOS', 'Lunes a sábados de 08:30 a 20:00'),
+      (2, 'SERVICIOS', 'VAC,DES,EST,CAS'),
+      (3, 'ESTADO', 'A'),
+      (3, 'HORARIOS', 'Lunes a viernes de 10:00 a 18:00'),
+      (3, 'SERVICIOS', 'VAC,DES'),
+      (4, 'ESTADO', 'A'),
+      (4, 'HORARIOS', 'Todos los días de 00:00 a 24:00'),
+      (4, 'SERVICIOS', 'VAC,EST,CAS'),
+      (5, 'ESTADO', 'I'),
+      (5, 'HORARIOS', 'Lunes a viernes de 09:00 a 13:00'),
+      (5, 'SERVICIOS', 'VAC')
 go
