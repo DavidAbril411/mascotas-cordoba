@@ -1,4 +1,4 @@
-package ar.edu.ubp.das.mascotasrest.BE;
+package ar.edu.ubp.das.mascotasrest.veterinarias.BE;
 
 public class TipoAtencionBE {
 
