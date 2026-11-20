@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Veterinaria 1 - VETERINARIA SAN ROQUE
+  veterinaria-1:
+    build: .
+    image: veterinaria-rest:latest
+    container_name: veterinaria-rest-1
+    ports:
+      - "8091:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=veterinaria_1
+      - DB_USER=sa
+      - DB_PASSWORD=Pyxis.2026
+      - API_KEY=VET1kR7pQ2mZ9xL4sT8vN3bH6yW1cF5dG0aJ
+
+  # Veterinaria 2 - CLINICA VETERINARIA DEL PARQUE
+  veterinaria-2:
+    image: veterinaria-rest:latest
+    container_name: veterinaria-rest-2
+    ports:
+      - "8092:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=veterinaria_2
+      - DB_USER=sa
+      - DB_PASSWORD=Pyxis.2026
+      - API_KEY=VET2mW4nB8vC1xZ6kL9pQ3rT7yH2sD5fG0aJ
