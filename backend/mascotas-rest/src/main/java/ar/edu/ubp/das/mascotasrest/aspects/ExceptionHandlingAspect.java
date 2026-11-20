@@ -13,7 +13,7 @@ public class ExceptionHandlingAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlingAspect.class);
 
-    @Around("execution(* ar.edu.ubp.das.mascotasrest.resources..*(..))")
+    @Around("execution(* ar.edu.ubp.das.mascotasrest..resources..*(..))")
     public Object handleExceptions(ProceedingJoinPoint joinPoint) throws Throwable {
         try {
             return joinPoint.proceed();

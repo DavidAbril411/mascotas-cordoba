@@ -3,6 +3,7 @@ go
 
 drop procedure if exists dbo.ins_sesion
 drop table if exists dbo.sesiones
+drop table if exists dbo.logs_integraciones
 drop table if exists dbo.horarios_refugios
 drop table if exists dbo.publicaciones_adopcion
 drop table if exists dbo.caracteristicas_mascotas
@@ -282,6 +283,24 @@ create table dbo.horarios_refugios
  hora_hasta				time			not null,
  constraint PK__horarios_refugios__END
 			primary key (id_refugio, nro_horario)
+)
+go
+
+/* ------------------------------------------
+   Tabla: logs_integraciones
+   (agregada al modelo lógico: registro de lo que pasó en cada
+   integración con las veterinarias, RNF06 y RNF08)
+   ------------------------------------------ */
+create table dbo.logs_integraciones
+(
+ nro_log				integer			not null identity
+						constraint PK__logs_integraciones__END primary key,
+ fecha					datetime		not null,
+ proceso				varchar(50)		not null,
+ organizacion			varchar(255)	null,
+ referencia				varchar(100)	null,
+ detalle				varchar(4000)	not null,
+ error					bit				not null
 )
 go
 
@@ -695,6 +714,354 @@ go
 -- execute dbo.get_publicaciones_activas @id_refugio=1
 
 /* ------------------------------------------
+   Procedimiento: get_veterinarias_integracion
+   Veterinarias activas con la configuración que hace falta para
+   consumir sus servicios (una columna por atributo).
+   ------------------------------------------ */
+create or alter procedure dbo.get_veterinarias_integracion
+as
+begin
+
+  select idVeterinaria = v.id_veterinaria,
+         razonSocial   = v.razon_social,
+         tecnologia    = t.valor,
+         url           = u.valor,
+         parametros    = p.valor,
+         apiKey        = k.valor
+    from dbo.veterinarias v (nolock)
+         join dbo.configuracion_veterinatarias e (nolock)
+           on v.id_veterinaria = e.id_veterinaria
+          and e.cod_atributo   = 'ESTADO'
+          and e.valor          = 'A'
+         left join dbo.configuracion_veterinatarias t (nolock)
+           on v.id_veterinaria = t.id_veterinaria
+          and t.cod_atributo   = 'TECNOLOGIA'
+         left join dbo.configuracion_veterinatarias u (nolock)
+           on v.id_veterinaria = u.id_veterinaria
+          and u.cod_atributo   = 'URL'
+         left join dbo.configuracion_veterinatarias p (nolock)
+           on v.id_veterinaria = p.id_veterinaria
+          and p.cod_atributo   = 'PARAMETROS'
+         left join dbo.configuracion_veterinatarias k (nolock)
+           on v.id_veterinaria = k.id_veterinaria
+          and k.cod_atributo   = 'API_KEY'
+   order by v.id_veterinaria
+
+end
+go
+
+-- execute dbo.get_veterinarias_integracion
+
+/* ------------------------------------------
+   Procedimiento: ins_mascota_veterinaria
+   Registra en el Registro Único una mascota que mandó una veterinaria.
+   Si ya existe (mismo microchip, o mismo nombre + año de nacimiento +
+   responsable) devuelve su NRM; si no, la da de alta con su responsable
+   (si todavía no es ciudadano), especie, raza y pelaje.
+   ------------------------------------------ */
+create or alter procedure dbo.ins_mascota_veterinaria
+(
+ @nombre					varchar(100),
+ @especie					varchar(100),
+ @raza						varchar(255)	= null,
+ @sexo						varchar(1),
+ @fecha_nacimiento			date			= null,
+ @pelaje					varchar(255)	= null,
+ @microchip					varchar(20)		= null,
+ @vive						bit,
+ @cuil_responsable			varchar(11),
+ @apellido_responsable		varchar(40),
+ @nombre_responsable		varchar(100),
+ @correo_responsable		varchar(255)	= null,
+ @telefono_responsable		varchar(20)		= null,
+ @domicilio_responsable		varchar(255)	= null,
+ @nro_reg_municipal			integer			output
+)
+as
+begin
+
+  set nocount on
+
+  declare @id_responsable	integer,
+          @anio_nacimiento	smallint,
+          @nro_especie		smallint
+
+  if trim(@raza) = ''
+     set @raza = null
+  if trim(@pelaje) = ''
+     set @pelaje = null
+  if trim(@microchip) = ''
+     set @microchip = null
+
+  set @anio_nacimiento   = year(@fecha_nacimiento)
+  set @nro_reg_municipal = null
+
+  -- Responsable: si todavía no es ciudadano, se da de alta (clave inicial = CUIL)
+  select @id_responsable = id_ciudadano
+    from dbo.ciudadanos (nolock)
+   where cuil = trim(@cuil_responsable)
+
+  if @id_responsable is null
+     begin
+       insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
+       values(upper(trim(@apellido_responsable)),
+              upper(trim(@nombre_responsable)),
+              trim(@cuil_responsable),
+              trim(@cuil_responsable),
+              isnull(trim(@correo_responsable), ''),
+              nullif(trim(@telefono_responsable), ''),
+              nullif(upper(trim(@domicilio_responsable)), ''),
+              1)
+
+       set @id_responsable = @@identity
+     end
+
+  -- ¿La mascota ya existe en el Registro Único? Primero por microchip
+  if @microchip is not null
+     select top 1 @nro_reg_municipal = nro_reg_municipal
+       from dbo.mascotas (nolock)
+      where microchip = @microchip
+      order by nro_reg_municipal
+
+  -- Si no tiene microchip (o no se encontró): nombre + año de nacimiento + responsable
+  if @nro_reg_municipal is null
+     select top 1 @nro_reg_municipal = nro_reg_municipal
+       from dbo.mascotas (nolock)
+      where upper(trim(nombre)) = upper(trim(@nombre))
+        and isnull(año_nacimiento, 0) = isnull(@anio_nacimiento, 0)
+        and id_responsable = @id_responsable
+      order by nro_reg_municipal
+
+  if @nro_reg_municipal is not null
+     begin
+       update dbo.mascotas
+          set vive      = @vive,
+              microchip = isnull(microchip, @microchip)
+        where nro_reg_municipal = @nro_reg_municipal
+
+       set nocount off
+       return
+     end
+
+  -- Mascota nueva
+  insert into dbo.mascotas(nombre, sexo, año_nacimiento, microchip, vive, id_responsable, id_refugio)
+  values(trim(@nombre),
+         upper(@sexo),
+         @anio_nacimiento,
+         @microchip,
+         @vive,
+         @id_responsable,
+         null)
+
+  set @nro_reg_municipal = @@identity
+
+  -- Especie: se busca por nombre y, si la Municipalidad no la tiene, se agrega
+  select @nro_especie = nro_valor_dominio
+    from dbo.dominio_rasgos_mascotas (nolock)
+   where cod_rasgo         = 'ESP'
+     and nom_valor_dominio = trim(@especie)
+
+  if @nro_especie is null
+     begin
+       select @nro_especie = isnull(max(nro_valor_dominio), 0) + 1
+         from dbo.dominio_rasgos_mascotas
+        where cod_rasgo = 'ESP'
+
+       insert into dbo.dominio_rasgos_mascotas(cod_rasgo, nro_valor_dominio, nom_valor_dominio)
+       values('ESP', @nro_especie, trim(@especie))
+     end
+
+  insert into dbo.caracteristicas_mascotas(nro_reg_municipal, cod_rasgo, nro_caracteristica, nro_valor_dominio, valor_caracteristica)
+  values(@nro_reg_municipal, 'ESP', 1, @nro_especie, null)
+
+  if @raza is not null
+     insert into dbo.caracteristicas_mascotas(nro_reg_municipal, cod_rasgo, nro_caracteristica, nro_valor_dominio, valor_caracteristica)
+     values(@nro_reg_municipal, 'RAZ', 1, null, trim(@raza))
+
+  if @pelaje is not null
+     insert into dbo.caracteristicas_mascotas(nro_reg_municipal, cod_rasgo, nro_caracteristica, nro_valor_dominio, valor_caracteristica)
+     values(@nro_reg_municipal, 'PEL', 1, null, trim(@pelaje))
+
+  set nocount off
+
+end
+go
+
+-- declare @nrm integer execute dbo.ins_mascota_veterinaria @nombre='Firulais', @especie='Perro', @raza='Mestizo', @sexo='M', @fecha_nacimiento='2021-03-10', @microchip='900100000000001', @vive=1, @cuil_responsable='27280001112', @apellido_responsable='LOPEZ', @nombre_responsable='CAROLINA', @correo_responsable='carolina.lopez@mail.com', @nro_reg_municipal=@nrm output select @nrm
+
+/* ------------------------------------------
+   Procedimiento: ins_atencion_veterinaria
+   Registra una atención que mandó una veterinaria.
+   La misma atención = misma mascota + fecha de atención + tipo:
+   si ya está, se actualiza (por si la veterinaria la corrigió);
+   así se puede volver a disparar la integración sin duplicar nada.
+   También actualiza si la mascota vive.
+   Resultado: N nueva, A actualizada, S sin cambios,
+              O otro tipo de atención (no es del programa),
+              X el NRM no existe en el Registro Único.
+   ------------------------------------------ */
+create or alter procedure dbo.ins_atencion_veterinaria
+(
+ @id_veterinaria			integer,
+ @nro_reg_municipal			integer,
+ @vive						bit,
+ @fecha_atencion			date,
+ @cod_tipo_atencion			varchar(3),
+ @detalle					varchar(4000)	= null,
+ @fecha_proxima				date			= null,
+ @cuil_profesional			varchar(11),
+ @apellido_profesional		varchar(40),
+ @nombre_profesional		varchar(100),
+ @correo_profesional		varchar(255)	= null,
+ @resultado					varchar(1)		output
+)
+as
+begin
+
+  set nocount on
+
+  declare @id_profesional	integer,
+          @nro_registro		integer
+
+  if trim(@detalle) = ''
+     set @detalle = null
+
+  if not exists (select 1
+                   from dbo.mascotas (nolock)
+                  where nro_reg_municipal = @nro_reg_municipal)
+     begin
+       set @resultado = 'X'
+       set nocount off
+       return
+     end
+
+  update dbo.mascotas
+     set vive = @vive
+   where nro_reg_municipal = @nro_reg_municipal
+     and vive <> @vive
+
+  if not exists (select 1
+                   from dbo.tipos_atencion_sanitaria (nolock)
+                  where cod_tipo_atencion = @cod_tipo_atencion)
+     begin
+       set @resultado = 'O'
+       set nocount off
+       return
+     end
+
+  -- Profesional: si todavía no es ciudadano, se da de alta (clave inicial = CUIL)
+  select @id_profesional = id_ciudadano
+    from dbo.ciudadanos (nolock)
+   where cuil = trim(@cuil_profesional)
+
+  if @id_profesional is null
+     begin
+       insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
+       values(upper(trim(@apellido_profesional)),
+              upper(trim(@nombre_profesional)),
+              trim(@cuil_profesional),
+              trim(@cuil_profesional),
+              isnull(trim(@correo_profesional), ''),
+              null,
+              null,
+              1)
+
+       set @id_profesional = @@identity
+     end
+
+  if not exists (select 1
+                   from dbo.profesionales_veterinarias (nolock)
+                  where id_veterinaria = @id_veterinaria
+                    and id_profesional = @id_profesional)
+     insert into dbo.profesionales_veterinarias(id_veterinaria, id_profesional, baja)
+     values(@id_veterinaria, @id_profesional, 0)
+
+  -- ¿Es una atención que ya estaba registrada?
+  select @nro_registro = nro_registro
+    from dbo.informacion_sanitaria (nolock)
+   where nro_reg_municipal = @nro_reg_municipal
+     and fecha_atencion    = @fecha_atencion
+     and cod_tipo_atencion = @cod_tipo_atencion
+
+  if @nro_registro is null
+     begin
+       select @nro_registro = isnull(max(nro_registro), 0) + 1
+         from dbo.informacion_sanitaria
+        where nro_reg_municipal = @nro_reg_municipal
+
+       insert into dbo.informacion_sanitaria(nro_reg_municipal, nro_registro, fecha_atencion, cod_tipo_atencion, detalle_atencion, fecha_vencimiento, id_veterinaria, id_profesional)
+       values(@nro_reg_municipal,
+              @nro_registro,
+              @fecha_atencion,
+              @cod_tipo_atencion,
+              trim(@detalle),
+              @fecha_proxima,
+              @id_veterinaria,
+              @id_profesional)
+
+       set @resultado = 'N'
+     end
+  else if exists (select 1
+                    from dbo.informacion_sanitaria (nolock)
+                   where nro_reg_municipal = @nro_reg_municipal
+                     and nro_registro      = @nro_registro
+                     and (isnull(detalle_atencion, '')          <> isnull(trim(@detalle), '')
+                      or  isnull(fecha_vencimiento, '19000101') <> isnull(@fecha_proxima, '19000101')
+                      or  id_veterinaria                        <> @id_veterinaria
+                      or  id_profesional                        <> @id_profesional))
+     begin
+       update dbo.informacion_sanitaria
+          set detalle_atencion  = trim(@detalle),
+              fecha_vencimiento = @fecha_proxima,
+              id_veterinaria    = @id_veterinaria,
+              id_profesional    = @id_profesional
+        where nro_reg_municipal = @nro_reg_municipal
+          and nro_registro      = @nro_registro
+
+       set @resultado = 'A'
+     end
+  else
+     set @resultado = 'S'
+
+  set nocount off
+
+end
+go
+
+-- declare @r varchar(1) execute dbo.ins_atencion_veterinaria @id_veterinaria=1, @nro_reg_municipal=1, @vive=1, @fecha_atencion='2026-10-15', @cod_tipo_atencion='VAC', @detalle='Antirrábica (lote AR-2291)', @fecha_proxima='2027-10-15', @cuil_profesional='27250003334', @apellido_profesional='RIOS', @nombre_profesional='LAURA', @resultado=@r output select @r
+
+/* ------------------------------------------
+   Procedimiento: ins_log_integracion
+   ------------------------------------------ */
+create or alter procedure dbo.ins_log_integracion
+(
+ @proceso			varchar(50),
+ @organizacion		varchar(255)	= null,
+ @referencia		varchar(100)	= null,
+ @detalle			varchar(4000),
+ @error				bit
+)
+as
+begin
+
+  set nocount on
+
+  insert into dbo.logs_integraciones(fecha, proceso, organizacion, referencia, detalle, error)
+  values(getdate(),
+         @proceso,
+         @organizacion,
+         @referencia,
+         left(@detalle, 4000),
+         @error)
+
+  set nocount off
+
+end
+go
+
+-- execute dbo.ins_log_integracion @proceso='INTEGRACION VETERINARIAS', @organizacion='VETERINARIA SAN ROQUE', @detalle='Connection refused', @error=1
+
+/* ------------------------------------------
    Datos iniciales: usuario de refugio
    ------------------------------------------ */
 insert into dbo.ciudadanos(apellido, nombre, cuil, clave, correo, telefono, domicilio, habilitado)
@@ -749,4 +1116,39 @@ values(1, 'ESTADO', 'A'),
       (5, 'ESTADO', 'I'),
       (5, 'HORARIOS', 'Lunes a viernes de 09:00 a 13:00'),
       (5, 'SERVICIOS', 'VAC')
+go
+
+/* ------------------------------------------
+   Datos iniciales: integración con las veterinarias
+   Todo lo que hace falta para consumir los servicios de cada
+   veterinaria está acá, no en el código:
+   - TECNOLOGIA: REST o SOAP (elige el cliente que se usa).
+   - URL: dirección base de los servicios de la veterinaria.
+   - PARAMETROS: JSON con cómo se llama cada operación del contrato
+     en esa veterinaria (ruta REST o servicio + operación SOAP).
+   - API_KEY: credencial que la veterinaria le dio a la Municipalidad.
+   Las veterinarias 2 (REST) y 4 (SOAP) quedan configuradas pero
+   apagadas en la demo, para mostrar la tolerancia a fallos.
+   ------------------------------------------ */
+insert into dbo.configuracion_veterinatarias(id_veterinaria, cod_atributo, valor)
+values(1, 'TECNOLOGIA', 'REST'),
+      (1, 'URL', 'http://localhost:8091/api/v1'),
+      (1, 'PARAMETROS', '{"mascotasPendientes": "/mascotas/pendientes", "nroRegMunicipal": "/mascotas/nro-reg-municipal", "atenciones": "/atenciones/listado"}'),
+      (1, 'API_KEY', 'VET1kR7pQ2mZ9xL4sT8vN3bH6yW1cF5dG0aJ'),
+      (2, 'TECNOLOGIA', 'REST'),
+      (2, 'URL', 'http://localhost:8092/api/v1'),
+      (2, 'PARAMETROS', '{"mascotasPendientes": "/mascotas/pendientes", "nroRegMunicipal": "/mascotas/nro-reg-municipal", "atenciones": "/atenciones/listado"}'),
+      (2, 'API_KEY', 'VET2mW4nB8vC1xZ6kL9pQ3rT7yH2sD5fG0aJ'),
+      (3, 'TECNOLOGIA', 'SOAP'),
+      (3, 'URL', 'http://localhost:8095/services'),
+      (3, 'PARAMETROS', '{"mascotasPendientes": {"servicio": "/mascotas", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "MascotasServiceService", "portName": "MascotasServicePort", "operacion": "getMascotasPendientes"},
+                         "nroRegMunicipal": {"servicio": "/mascotas", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "MascotasServiceService", "portName": "MascotasServicePort", "operacion": "actNroRegMunicipal"},
+                         "atenciones": {"servicio": "/atenciones", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "AtencionesServiceService", "portName": "AtencionesServicePort", "operacion": "getAtenciones"}}'),
+      (3, 'API_KEY', 'VET3pL6qR1sT5vW9xZ2bC4nM8kH3jD7fG0aJ'),
+      (4, 'TECNOLOGIA', 'SOAP'),
+      (4, 'URL', 'http://localhost:8096/services'),
+      (4, 'PARAMETROS', '{"mascotasPendientes": {"servicio": "/mascotas", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "MascotasServiceService", "portName": "MascotasServicePort", "operacion": "getMascotasPendientes"},
+                         "nroRegMunicipal": {"servicio": "/mascotas", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "MascotasServiceService", "portName": "MascotasServicePort", "operacion": "actNroRegMunicipal"},
+                         "atenciones": {"servicio": "/atenciones", "namespace": "http://services.veterinariaws.das.ubp.edu.ar/", "serviceName": "AtencionesServiceService", "portName": "AtencionesServicePort", "operacion": "getAtenciones"}}'),
+      (4, 'API_KEY', 'VET4sD2fG6hJ1kL5zX9cV3bN7mQ4wE8rT0aJ')
 go

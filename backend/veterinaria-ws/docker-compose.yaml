@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Veterinaria 3 - VETERINARIA HUELLAS
+  veterinaria-3:
+    build: .
+    image: veterinaria-ws:latest
+    container_name: veterinaria-ws-3
+    ports:
+      - "8095:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=veterinaria_3
+      - DB_USER=sa
+      - DB_PASSWORD=Pyxis.2026
+      - API_KEY=VET3pL6qR1sT5vW9xZ2bC4nM8kH3jD7fG0aJ
+
+  # Veterinaria 4 - CENTRO VETERINARIO ALBERDI
+  veterinaria-4:
+    image: veterinaria-ws:latest
+    container_name: veterinaria-ws-4
+    ports:
+      - "8096:8080"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=1433
+      - DB_NAME=veterinaria_4
+      - DB_USER=sa
+      - DB_PASSWORD=Pyxis.2026
+      - API_KEY=VET4sD2fG6hJ1kL5zX9cV3bN7mQ4wE8rT0aJ
